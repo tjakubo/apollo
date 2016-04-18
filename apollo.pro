@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+CONFIG   += c++11
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -13,8 +14,15 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    hardware.cpp \
+    inputwindow.cpp
 
-HEADERS  += mainwindow.h
+LIBS += -L/usr/lib/x86_64-linux-gnu -lboost_system
 
-FORMS    += mainwindow.ui
+HEADERS  += mainwindow.h \
+    hardware.h \
+    inputwindow.h
+
+FORMS    += mainwindow.ui \
+    inputwindow.ui
