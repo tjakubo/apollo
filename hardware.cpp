@@ -56,3 +56,21 @@ void Hardware::Measure()
     emit sendMeasurement(meas_struct);
     if(rawDataSent) emit sendRawData(str);
 }
+
+/*Meas::Meas()
+{
+ x = y = z = 0;
+ x_off = y_off = z_off = 0;
+}
+
+const int x() { return x + x_off; }
+const int y() { return y + y_off; }
+const int z() { return z + z_off; }
+void setMeas(int xNew, int yNew, int zNew) { x = xNew; y = yNew; z = zNew; }
+void setOffset(int xOff, int yOff, int zOff) { x_off = xOff; y_off = yOff; z_off = zOff; }
+void resetOffset() { x_off = y_off = z_off = 0; }
+int xAngle() { return*/
+
+meas::meas(): x(0), y(0), z(0) {}
+meas::meas(int nx, int ny, int nz): x(nx), y(ny), z(nz) {}
+meas operator+ (meas m1, meas m2){ return meas(m1.x + m2.x, m1.y + m2.y, m1.z + m2.z); }

@@ -29,7 +29,7 @@ void InputWindow::paintEvent(QPaintEvent *)
     int xViz_xCent = ui->xSpinViz->x() + ui->xSpinViz->width()/2;
     int xViz_yCent = ui->xSpinViz->y() + ui->xSpinViz->height()/2;
     painter.translate(xViz_xCent, xViz_yCent);
-    int kat = (((double) actMeas.y)/64) * 90;
+    int kat = (((double) (actMeas + measOffset).y)/64) * 90;
     if(actMeas.z < 0) kat = 180 - kat;
     painter.rotate(kat);
 
@@ -47,7 +47,7 @@ void InputWindow::paintEvent(QPaintEvent *)
     int yViz_xCent = ui->ySpinViz->x() + ui->ySpinViz->width()/2;
     int yViz_yCent = ui->ySpinViz->y() + ui->ySpinViz->height()/2;
     painter.translate(yViz_xCent, yViz_yCent);
-    kat = (((double) actMeas.x)/64) * 90;
+    kat = (((double) (actMeas + measOffset).x)/64) * 90;
     if(actMeas.z < 0) kat = 180 - kat;
     painter.rotate(kat);
     painter.translate(-20, 0);
@@ -59,6 +59,61 @@ void InputWindow::paintEvent(QPaintEvent *)
     painter.drawLine(2, 6, 2, 20);
     painter.translate(12, 0);
     }
+
+    painter.resetTransform();
+    QPen outline(Qt::black, 2, Qt::SolidLine);
+    QPen xForce(Qt::red, 3, Qt::SolidLine);
+    QPen yForce(Qt::green, 3, Qt::SolidLine);
+    QPen zForce(Qt::blue, 3, Qt::SolidLine);
+    int fViz_xCent = ui->forceViz->x() + ui->forceViz->width()/2;
+    int fViz_yCent = ui->forceViz->y() + ui->forceViz->height()/2;
+    painter.translate(fViz_xCent, fViz_yCent);
+
+    painter.setPen(outline);
+
+    painter.drawLine(-60, 15, -40, -15);
+    painter.drawLine(-40, -15, 60, -15);
+    painter.drawLine(60, -15, 40, 15);
+    painter.drawLine(40, 15, -60, 15);
+    painter.drawLine(60, -15, 60, -10);
+    painter.drawLine(40, 15, 40, 20);
+    painter.drawLine(-60, 15, -60, 20);
+    painter.drawLine(-60, 20, 40, 20);
+    painter.drawLine(40, 20, 60, -10);
+
+    // mma i led
+
+    painter.setPen(xForce);
+    painter.rotate(210);
+    int fmeas = (actMeas+measOffset).x;
+    painter.drawLine(0, 0, 0, fmeas);
+    if(abs(fmeas) > 10)
+    {
+        painter.drawLine(0, fmeas, 3, (fmeas>0)?(fmeas-5):(fmeas+5));
+        painter.drawLine(0, fmeas, -3, (fmeas>0)?(fmeas-5):(fmeas+5));
+    }
+
+    painter.setPen(yForce);
+    painter.rotate(-120);
+    fmeas = (actMeas+measOffset).y;
+    painter.drawLine(0, 0, 0, fmeas);
+    if(abs(fmeas) > 10)
+    {
+        painter.drawLine(0, fmeas, 3, (fmeas>0)?(fmeas-5):(fmeas+5));
+        painter.drawLine(0, fmeas, -3, (fmeas>0)?(fmeas-5):(fmeas+5));
+    }
+
+    painter.setPen(zForce);
+    painter.rotate(-90);
+    fmeas = (actMeas+measOffset).z;
+    painter.drawLine(0, 0, 0, fmeas);
+    if(abs(fmeas) > 10)
+    {
+        painter.drawLine(0, fmeas, 3, (fmeas>0)?(fmeas-5):(fmeas+5));
+        painter.drawLine(0, fmeas, -3, (fmeas>0)?(fmeas-5):(fmeas+5));
+    }
+
+
 
 }
 
