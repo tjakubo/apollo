@@ -32,13 +32,13 @@ public:
     void paintEvent(QPaintEvent *);
     void closeEvent(QCloseEvent *);
 
-    meas actMeas;
-    bool autoLoop;
+    //meas actMeas;
+    //bool autoLoop;
     Hardware *_HWlink;
     InputWindow *_InputWindow;
 
-    public slots:
-    void setMeas(meas measurement);
+    //public slots:
+    //void setMeas(meas measurement);
     
 private slots:
     void on_Button_clicked();

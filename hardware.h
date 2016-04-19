@@ -16,13 +16,15 @@ class Hardware: public QWidget{
     Q_OBJECT
 public:
     Hardware(QWidget *parent = nullptr);
+    bool rawDataSent;
 
 public slots:
     void Measure();
-
+    void setRawDataStatus(bool isSent);
 
 signals:
     void sendMeasurement(meas measurement);
+    void sendRawData(QString data);
 
 };
 

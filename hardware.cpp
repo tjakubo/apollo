@@ -1,7 +1,15 @@
 #include "hardware.h"
 
 
-Hardware::Hardware(QWidget *parent): QWidget(parent) {}
+Hardware::Hardware(QWidget *parent): QWidget(parent)
+{
+    rawDataSent = false;
+}
+
+void Hardware::setRawDataStatus(bool isSent)
+{
+    rawDataSent = isSent;
+}
 
 void Hardware::Measure()
 {
@@ -46,4 +54,5 @@ void Hardware::Measure()
     meas_struct.z = str.split(" ")[3].toInt();
     //qDebug() << "msrd" << meas_struct.x << " " << meas_struct.y << " " << meas_struct.z;
     emit sendMeasurement(meas_struct);
+    if(rawDataSent) emit sendRawData(str);
 }

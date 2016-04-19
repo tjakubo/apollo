@@ -8,9 +8,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     _HWlink = new Hardware;
-    autoLoop = false;
-    _InputWindow = new InputWindow;
-    qDebug() << connect(_HWlink, SIGNAL(sendMeasurement(meas)), this, SLOT(setMeas(meas)));
+    //autoLoop = false;
+    _InputWindow = new InputWindow(_HWlink);
+    _InputWindow->setWindowTitle("Dane sensoryczne");
+
+    //qDebug() << connect(_HWlink, SIGNAL(sendMeasurement(meas)), this, SLOT(setMeas(meas)));
     qDebug() << connect(_HWlink, SIGNAL(sendMeasurement(meas)), _InputWindow, SLOT(setMeas(meas)));
     qDebug() << connect(_HWlink, SIGNAL(sendMeasurement(meas)), _InputWindow, SLOT(updateBars(meas)));
     QTimer *timer = new QTimer(this);
@@ -38,16 +40,16 @@ void MainWindow::closeEvent(QCloseEvent *event)
     QApplication::quit();
 }
 
-void MainWindow::setMeas(meas newMeas)
+/*void MainWindow::setMeas(meas newMeas)
 {
    actMeas = newMeas;
    //update();
    //_InputWindow->update();
-}
+}*/
 
 void MainWindow::paintEvent(QPaintEvent *event)
 {
-    static int counter = 0;
+    /*static int counter = 0;
 
     QPainter painter(this);
     QPen pen(Qt::black, 2, Qt::SolidLine);
@@ -56,7 +58,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
     //QWidget::paintEvent(event);
 counter++;
    // _HWlink->Measure();
-//qDebug() << "repanint mainwindow";
+//qDebug() << "repanint mainwindow";*/
 }
 
 void MainWindow::on_Button_clicked()
