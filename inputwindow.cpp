@@ -7,11 +7,10 @@ InputWindow::InputWindow(Hardware *HWlink, QWidget *parent) :
 {
     _HWlink = HWlink;
     ui->setupUi(this);
-    measOffset.x = measOffset.y = measOffset.z = 0;
-    qDebug() << connect(ui->compensateOffset, SIGNAL(clicked()), this, SLOT(updateOffsetTextboxes()));
-    qDebug() << connect(ui->resetOffset, SIGNAL(clicked()), this, SLOT(updateOffsetTextboxes()));
-    qDebug() << connect(ui->rawEnable, SIGNAL(toggled(bool)), _HWlink, SLOT(setRawDataStatus(bool)));
-    qDebug() << connect(_HWlink, SIGNAL(sendRawData(QString)), this, SLOT(updateRawDataTextbox(QString)));
+
+    qDebug() << connect(_HWlink, SIGNAL(NewMeasurement(meas)), this, SLOT(NewMeasurementRecieved(meas)));
+    qDebug() << connect(_HWlink, SIGNAL(NewCalibrationData(meas,int)), this, SLOT(NewCalibrationDataRecieved(meas,int)));
+    qDebug() << connect(_HWlink, SIGNAL(NewRawData(QString)), this, SLOT(NewRawDataRecieved(QString)));
 }
 
 InputWindow::~InputWindow()
@@ -20,17 +19,18 @@ InputWindow::~InputWindow()
 }
 
 void InputWindow::paintEvent(QPaintEvent *)
-{
+{  
     QPainter painter(this);
     QPen pcb(QColor(102, 102, 0), 5, Qt::SolidLine);
     QPen leads(Qt::black, 8, Qt::SolidLine);
-    //QPen wires(Qt::red, 2, Qt::SolidLine);
+    QPen led(Qt::red, 3, Qt::SolidLine);
+    painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(pcb);
     int xViz_xCent = ui->xSpinViz->x() + ui->xSpinViz->width()/2;
     int xViz_yCent = ui->xSpinViz->y() + ui->xSpinViz->height()/2;
     painter.translate(xViz_xCent, xViz_yCent);
-    int kat = (((double) (actMeas + measOffset).y)/64) * 90;
-    if(actMeas.z < 0) kat = 180 - kat;
+    int kat = (((double) _actMeas.y)/64) * 90;
+    if(_actMeas.z < 0) kat = 180 - kat;
     painter.rotate(kat);
 
     painter.translate(-50, 0);
@@ -47,8 +47,8 @@ void InputWindow::paintEvent(QPaintEvent *)
     int yViz_xCent = ui->ySpinViz->x() + ui->ySpinViz->width()/2;
     int yViz_yCent = ui->ySpinViz->y() + ui->ySpinViz->height()/2;
     painter.translate(yViz_xCent, yViz_yCent);
-    kat = (((double) (actMeas + measOffset).x)/64) * 90;
-    if(actMeas.z < 0) kat = 180 - kat;
+    kat = (((double) _actMeas.x)/64) * 90;
+    if(_actMeas.z < 0) kat = 180 - kat;
     painter.rotate(kat);
     painter.translate(-20, 0);
     painter.drawLine(0, 0, 40, 0);
@@ -56,8 +56,8 @@ void InputWindow::paintEvent(QPaintEvent *)
     painter.setPen(leads);
     for(int i=0; i<4; i++)
     {
-    painter.drawLine(2, 6, 2, 20);
-    painter.translate(12, 0);
+        painter.drawLine(2, 6, 2, 20);
+        painter.translate(12, 0);
     }
 
     painter.resetTransform();
@@ -81,11 +81,11 @@ void InputWindow::paintEvent(QPaintEvent *)
     painter.drawLine(-60, 20, 40, 20);
     painter.drawLine(40, 20, 60, -10);
 
-    // mma i led
+    // dorysowac mma i led
 
     painter.setPen(xForce);
     painter.rotate(210);
-    int fmeas = (actMeas+measOffset).x;
+    int fmeas = (_actMeas).x;
     painter.drawLine(0, 0, 0, fmeas);
     if(abs(fmeas) > 10)
     {
@@ -95,7 +95,7 @@ void InputWindow::paintEvent(QPaintEvent *)
 
     painter.setPen(yForce);
     painter.rotate(-120);
-    fmeas = (actMeas+measOffset).y;
+    fmeas = (_actMeas).y;
     painter.drawLine(0, 0, 0, fmeas);
     if(abs(fmeas) > 10)
     {
@@ -105,7 +105,7 @@ void InputWindow::paintEvent(QPaintEvent *)
 
     painter.setPen(zForce);
     painter.rotate(-90);
-    fmeas = (actMeas+measOffset).z;
+    fmeas = (_actMeas).z;
     painter.drawLine(0, 0, 0, fmeas);
     if(abs(fmeas) > 10)
     {
@@ -117,46 +117,85 @@ void InputWindow::paintEvent(QPaintEvent *)
 
 }
 
-void InputWindow::setMeas(meas newMeas){ actMeas = newMeas; }
+void InputWindow::NewMeasurementRecieved(meas newMeas) { _actMeas = newMeas; }
 
-void InputWindow::updateBars(meas newMeas){
-    ui->_xForce->setValue(actMeas.x + measOffset.x);
-    ui->_xForce->setFormat(QString::number(((float) (actMeas.x + measOffset.x))/64, 'f', 2) + " g");
-    ui->_yForce->setValue(actMeas.y + measOffset.y);
-    ui->_yForce->setFormat(QString::number(((float) (actMeas.y + measOffset.y))/64, 'f', 2) + " g");
-    ui->_zForce->setValue(actMeas.z + measOffset.z);
-    ui->_zForce->setFormat(QString::number(((float) (actMeas.z + measOffset.z))/64, 'f', 2) + " g");
+void InputWindow::NewRawDataRecieved(QString newRaw)
+{
+    ui->rawViewer->append(newRaw);
+}
+
+void InputWindow::UpdateView()
+{
+    ui->_xForce->setValue(_actMeas.x);
+    ui->_xForce->setFormat(QString::number(((float) _actMeas.x )/INT_1G, 'f', 2) + " g");
+    ui->_yForce->setValue(_actMeas.y);
+    ui->_yForce->setFormat(QString::number(((float) _actMeas.y )/INT_1G, 'f', 2) + " g");
+    ui->_zForce->setValue(_actMeas.z);
+    ui->_zForce->setFormat(QString::number(((float) _actMeas.z )/INT_1G, 'f', 2) + " g");
+
+    int pMax = _actCalData.p;
+    ui->pValue->setFormat(QString::number(((float) _actMeas.p*100)/_actCalData.p, 'f', 1) + " %");
+    ui->pValue->setValue( ( ( (float) _actMeas.p )/pMax )*100);
+    this->update();
+}
+
+void InputWindow::NewCalibrationDataRecieved(meas calData, int sampleNum)
+{
+    _actCalData = calData;
+    _actSampleNum = sampleNum;
+    ui->xOffset->setText(QString::number(((float) calData.x)/INT_1G));
+    ui->yOffset->setText(QString::number(((float) calData.y)/INT_1G));
+    ui->zOffset->setText(QString::number(((float) calData.z)/INT_1G));
+
+    if(sampleNum == 1) ui->sampleNum->setText(QString::number(sampleNum) + QObject::trUtf8(" (wył)"));
+    else ui->sampleNum->setText(QString::number(sampleNum));
 }
 
 void InputWindow::on_resetOffset_clicked()
 {
-    measOffset.x = measOffset.y = measOffset.z = 0;
-    emit updateOffsetTextboxes();
+    meas newCal = _HWlink->GetCal();
+    newCal.x = newCal.y = newCal.z = 0;
+    _HWlink->SetCal(newCal);
 }
 
 void InputWindow::on_compensateOffset_clicked()
 {
-    measOffset.x = -1*actMeas.x;
-    measOffset.y = -1*actMeas.y;
-    measOffset.z = -1*actMeas.z;
-    emit updateOffsetTextboxes();
+    meas newCal = _HWlink->GetCal();
+    newCal.x = -1*(_actMeas.x - _actCalData.x);
+    newCal.y = -1*(_actMeas.y - _actCalData.y);
+    newCal.z = -1*(_actMeas.z - _actCalData.z) + INT_1G;
+    _HWlink->SetCal(newCal);
 }
 
 void InputWindow::on_applyOffset_clicked()
 {
-    measOffset.x = ui->xOffset->text().toInt()*64;
-    measOffset.y = ui->yOffset->text().toInt()*64;
-    measOffset.z = ui->zOffset->text().toInt()*64;
+    meas newCal = _HWlink->GetCal();
+    newCal.x = ui->xOffset->text().toInt()*64;
+    newCal.y = ui->yOffset->text().toInt()*64;
+    newCal.z = ui->zOffset->text().toInt()*64;
+    _HWlink->SetCal(newCal);
 }
 
-void InputWindow::updateOffsetTextboxes()
+void InputWindow::on_setMaxMeas_clicked()
 {
- ui->xOffset->setText(QString::number(((double) measOffset.x)/64));
- ui->yOffset->setText(QString::number(((double) measOffset.y)/64));
- ui->zOffset->setText(QString::number(((double) measOffset.z)/64));
+    meas newCal = _HWlink->GetCal();
+    newCal.p = _actMeas.p;
+    _HWlink->SetCal(newCal);
 }
 
-void InputWindow::updateRawDataTextbox(QString newRaw)
+void InputWindow::on_resetMaxMeas_clicked()
 {
-    ui->rawViewer->append(newRaw);
+    meas newCal = _HWlink->GetCal();
+    newCal.p = 1024;
+    _HWlink->SetCal(newCal);
+}
+void InputWindow::on_setSampleNum_clicked()
+{
+    int newSampleNum = ui->sampleNum->text().toInt();
+    _HWlink->SetSampleNum(newSampleNum);
+}
+
+void InputWindow::on_rawEnable_clicked(bool checked)
+{
+    _HWlink->SetRawDataStatus(checked);
 }

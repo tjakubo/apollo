@@ -2,50 +2,66 @@
 #define HARDWARE_H
 
 #include <QWidget>
-#include <qstring.h>
+#include <QString>
+#include <QDebug>
 #include <boost/asio.hpp>
 #include <thread>
-#include <qdebug.h>
 
-/*class Meas
-{
-    int x, y, z;
-    int x_off, y_off, z_off;
+#define MEAS_PORT "/dev/ttyS0"
+#define SAMPLE_NUM_MAX 30
+#define INT_1G 64
 
-public:
-    Meas();
-    const int x();
-    const int y();
-    const int z();
-    void setMeas(int x, int y, int z);
-    void setOffset(int x, int y, int z);
-    void resetOffset();
-    int xAngle();
-    int yAngle();
-};*/
-
+// STRUKTURA ZAWIERAJACA JEDEN POMIAR
 struct meas
 {
-    int x, y, z;
+    int x, y, z; // pomiary przyspieszen osi akcelerometru
+    int p;       // pomiar napiecia potencjometru
+
     meas();
-    meas(int nx, int ny, int nz);
+    meas(int nx, int ny, int nz, int np);
+    void OffsetXYZ(meas offset);
 };
+// //
 
+// Dzialania na pomiarze
 meas operator+ (meas m1, meas m2);
+meas operator/ (meas m, int div);
+// //
 
+// KLASA OBSLUGUJACA SPRZET - POMIAR, PRZETWARZANIE POMIARU
 class Hardware: public QWidget{
     Q_OBJECT
+
+    // Zmienne do komunikacji poprzez port szeregowy
+    boost::asio::io_service _ios;
+    boost::asio::serial_port _sp;
+
+    // Zmienne do przetwarzania pomiaru
+    bool _rawDataSent;   // czy powinna wysylac surowe dane
+    meas _measCal;       // wartosci do kalibracji pomiaru
+    int _avgSampleNum;   // ilosc probek do usredniania pomiaru
+    meas Process(meas measurement);
+
+
 public:
     Hardware(QWidget *parent = nullptr);
-    bool rawDataSent;
+
+    // Metody dostepu do wartosci kalibracji
+    void SetCal(meas newCal);
+    meas GetCal();
+    void SetSampleNum(int newSampleNum);
+    int GetSampleNum();
+
+    // Metoda wlacz/wylacz przesyl surowych danych
+    void SetRawDataStatus(bool rawSent);
 
 public slots:
-    void Measure();
-    void setRawDataStatus(bool isSent);
+    void Measure(); // Metoda rozpoczynajaca nowy pomiar
 
 signals:
-    void sendMeasurement(meas measurement);
-    void sendRawData(QString data);
+    void NewMeasurement(meas measurement);
+    void NewRawData(QString rawData);
+    void NewCalibrationData(meas newCal, int newSampleNum);
 
 };
 

@@ -1,76 +1,97 @@
 #include "hardware.h"
 
 
-Hardware::Hardware(QWidget *parent): QWidget(parent)
+Hardware::Hardware(QWidget *parent):
+    QWidget(parent),
+    _sp(_ios, MEAS_PORT),
+    _measCal(0, 0, 0, 1024)
 {
-    rawDataSent = false;
-}
-
-void Hardware::setRawDataStatus(bool isSent)
-{
-    rawDataSent = isSent;
+    _sp.set_option(boost::asio::serial_port::baud_rate(9600));
+    _rawDataSent = false;
+    _avgSampleNum = 1;
 }
 
 void Hardware::Measure()
 {
-    static boost::asio::io_service ios;
-    static boost::asio::serial_port sp(ios, "/dev/ttyS0");
-    sp.set_option(boost::asio::serial_port::baud_rate(9600));
-    //meas measure;
     char tmp[16];
-    //char meas[32];
     char meas_raw[32];
     bool begin, end;
     int iter;
-    //std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     std::string message = "m";
-    sp.write_some(boost::asio::buffer(message));
-    //sp.read_some(boost::asio::buffer(tmp));
+    _sp.write_some(boost::asio::buffer(message));
     begin = end = false;
     iter = 0;
     do
     {
-        int read = sp.read_some(boost::asio::buffer(tmp));
-        //std::cout << "Read " << read << " : " << tmp << std::endl;
+        int read = _sp.read_some(boost::asio::buffer(tmp));
         for(int i=0; (i<read) && !end; i++)
         {
-            //std::cout << "read " << tmp[i] << std::endl;
             if(tmp[i]=='b'){ begin = true; iter = 0; }
             if(begin) meas_raw[iter] = tmp[i];
             if((tmp[i] == 'e') && begin){ end = true; meas_raw[iter + 1] = '\0'; }
             iter++;
         }
 
-        //sp.close();
     } while(!end);
-    //std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    //std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-    //auto dt = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-    //std::cout << meas << " and " << dt << "us elapsed\n
+
     meas meas_struct;
     QString str = (const char*) meas_raw;
     meas_struct.x = str.split(" ")[1].toInt();
     meas_struct.y = str.split(" ")[2].toInt();
     meas_struct.z = str.split(" ")[3].toInt();
-    //qDebug() << "msrd" << meas_struct.x << " " << meas_struct.y << " " << meas_struct.z;
-    emit sendMeasurement(meas_struct);
-    if(rawDataSent) emit sendRawData(str);
+    meas_struct.p = str.split(" ")[4].toInt();
+
+    emit NewMeasurement(Process(meas_struct));
+
+    if(_rawDataSent) { emit NewRawData(str); }
 }
 
-/*Meas::Meas()
+meas Hardware::Process(meas measurement)
 {
- x = y = z = 0;
- x_off = y_off = z_off = 0;
+    if(_avgSampleNum > 1)
+    {
+     static std::vector<meas> measHist;
+     while((unsigned) _avgSampleNum < measHist.size()) measHist.erase(measHist.begin());
+     while((unsigned) _avgSampleNum > measHist.size()) measHist.push_back(measurement);
+
+     measHist.erase(measHist.begin());
+     measHist.push_back(measurement);
+     for(unsigned int i=0; i<(measHist.size()-1); i++) measurement = measurement + measHist[i];
+     measurement = measurement/((int) measHist.size());
+    }
+
+ measurement.OffsetXYZ(_measCal);
+ if(measurement.p > _measCal.p) measurement.p = _measCal.p;
+ return measurement;
 }
 
-const int x() { return x + x_off; }
-const int y() { return y + y_off; }
-const int z() { return z + z_off; }
-void setMeas(int xNew, int yNew, int zNew) { x = xNew; y = yNew; z = zNew; }
-void setOffset(int xOff, int yOff, int zOff) { x_off = xOff; y_off = yOff; z_off = zOff; }
-void resetOffset() { x_off = y_off = z_off = 0; }
-int xAngle() { return*/
+void Hardware::SetCal(meas newCal)
+{
+    _measCal = newCal;
+    emit NewCalibrationData(_measCal, _avgSampleNum);
+}
+meas Hardware::GetCal() { return _measCal; }
+
+void Hardware::SetSampleNum(int newSampleNum)
+{
+    if(newSampleNum > SAMPLE_NUM_MAX) _avgSampleNum = SAMPLE_NUM_MAX;
+    else if(newSampleNum < 1) _avgSampleNum = 1;
+    else _avgSampleNum = newSampleNum;
+    emit NewCalibrationData(_measCal, _avgSampleNum);
+}
+int Hardware::GetSampleNum(){ return _avgSampleNum; }
+
+void Hardware::SetRawDataStatus(bool rawSent){ _rawDataSent = rawSent; }
+
+
 
 meas::meas(): x(0), y(0), z(0) {}
-meas::meas(int nx, int ny, int nz): x(nx), y(ny), z(nz) {}
-meas operator+ (meas m1, meas m2){ return meas(m1.x + m2.x, m1.y + m2.y, m1.z + m2.z); }
+meas::meas(int nx, int ny, int nz, int np): x(nx), y(ny), z(nz), p(np) {}
+meas operator+ (meas m1, meas m2){ return meas(m1.x + m2.x, m1.y + m2.y, m1.z + m2.z, m1.p + m2.p); }
+meas operator/ (meas m, int div){ return meas(m.x/div, m.y/div, m.z/div, m.p/div); }
+void meas::OffsetXYZ(meas offset)
+{
+    this->x = this->x + offset.x;
+    this->y = this->y + offset.y;
+    this->z = this->z + offset.z;
+}

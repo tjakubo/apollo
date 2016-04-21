@@ -12,33 +12,28 @@
 #endif
 
 #include <QMainWindow>
-#include "qpainter.h"
-#include "qstring.h"
-#include <qdebug.h>
-#include <qtimer.h>
+#include <QPainter>
+#include <QString>
+#include <QDebug>
+#include <QTimer>
+
+#define VIEW_FREQ 60 // Odswiezanie okienek [Hz]
+#define MEAS_FREQ 30 // Odswiezanie pomiaru [Hz]
 
 namespace Ui {
 class MainWindow;
 }
 
+// KLASA ZARZADZAJACA GLOWNYM OKNEM
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+    Hardware *_HWlink;         // (tworzona tutaj) klasa sprzetu
+    InputWindow *_InputWindow; // (tworzona tutaj) klasa okna danych
     
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-
-    void paintEvent(QPaintEvent *);
-    void closeEvent(QCloseEvent *);
-
-    //meas actMeas;
-    //bool autoLoop;
-    Hardware *_HWlink;
-    InputWindow *_InputWindow;
-
-    //public slots:
-    //void setMeas(meas measurement);
     
 private slots:
     void on_Button_clicked();
