@@ -1,12 +1,14 @@
 #include "inputwindow.h"
 #include "ui_inputwindow.h"
 
-InputWindow::InputWindow(Hardware *HWlink, QWidget *parent) :
-    QWidget(parent),
+InputWindow::InputWindow(Hardware *HWlink) :
+        Reciever(HWlink),
     ui(new Ui::InputWindow)
 {
+        ui->setupUi(this);
     _HWlink = HWlink;
-    ui->setupUi(this);
+    _HWlink->SetCal(_HWlink->GetCal());
+
 
     qDebug() << connect(_HWlink, SIGNAL(NewMeasurement(meas)), this, SLOT(NewMeasurementRecieved(meas)));
     qDebug() << connect(_HWlink, SIGNAL(NewCalibrationData(meas,int)), this, SLOT(NewCalibrationDataRecieved(meas,int)));

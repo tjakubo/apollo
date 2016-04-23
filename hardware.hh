@@ -4,12 +4,14 @@
 #include <QWidget>
 #include <QString>
 #include <QDebug>
+#include <QTimer>
 #include <boost/asio.hpp>
 #include <thread>
 
 #define MEAS_PORT "/dev/ttyS0"
 #define SAMPLE_NUM_MAX 30
 #define INT_1G 64
+#define TIMEOUT_MS 1000
 
 // STRUKTURA ZAWIERAJACA JEDEN POMIAR
 struct meas
@@ -35,6 +37,7 @@ class Hardware: public QWidget{
     // Zmienne do komunikacji poprzez port szeregowy
     boost::asio::io_service _ios;
     boost::asio::serial_port _sp;
+    QTimer _timer;
 
     // Zmienne do przetwarzania pomiaru
     bool _rawDataSent;   // czy powinna wysylac surowe dane

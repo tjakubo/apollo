@@ -2,12 +2,12 @@
 #define MAINWINDOW_H
 
 #ifndef HARDWARE_H
-#include "hardware.h"
+#include "hardware.hh"
 #define HARDWARE_H
 #endif
 
 #ifndef INPUTWINDOW_H
-#include "inputwindow.h"
+#include "inputwindow.hh"
 #define INPUTWINDOW_H
 #endif
 

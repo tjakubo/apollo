@@ -16,13 +16,16 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     hardware.cpp \
-    inputwindow.cpp
+    inputwindow.cpp \
+    reciever.cpp
 
 LIBS += -L/usr/lib/x86_64-linux-gnu -lboost_system
 
-HEADERS  += mainwindow.h \
-    hardware.h \
-    inputwindow.h
+HEADERS  += \
+    hardware.hh \
+    inputwindow.hh \
+    mainwindow.hh \
+    reciever.hh
 
 FORMS    += mainwindow.ui \
     inputwindow.ui

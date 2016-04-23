@@ -6,8 +6,13 @@
 #include <QPainter>
 
 #ifndef HARDWARE_H
-#include "hardware.h"
+#include "hardware.hh"
 #define HARDWARE_H
+#endif
+
+#ifndef RECIEVER_H
+#include "reciever.hh"
+#define RECIEVER_H
 #endif
 
 namespace Ui {
@@ -15,7 +20,7 @@ class InputWindow;
 }
 
 // KLASA ZARZADZAJACA OKIENKIEM PODGLADU DANYCH I KALIBRACJI
-class InputWindow : public QWidget
+class InputWindow : public Reciever
 {
     Q_OBJECT
     meas _actMeas;      // ostatnia wartosc pomiaru
@@ -28,7 +33,7 @@ class InputWindow : public QWidget
 
 public:
 
-    explicit InputWindow(Hardware *HWlink, QWidget *parent = 0);
+    explicit InputWindow(Hardware *HWlink);
     ~InputWindow();
     void paintEvent(QPaintEvent *);
 

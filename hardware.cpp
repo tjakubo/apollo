@@ -9,6 +9,7 @@ Hardware::Hardware(QWidget *parent):
     _sp.set_option(boost::asio::serial_port::baud_rate(9600));
     _rawDataSent = false;
     _avgSampleNum = 1;
+    _timer.setSingleShot(true);
 }
 
 void Hardware::Measure()
@@ -17,6 +18,7 @@ void Hardware::Measure()
     char meas_raw[32];
     bool begin, end;
     int iter;
+    _timer.start(TIMEOUT_MS);
     std::string message = "m";
     _sp.write_some(boost::asio::buffer(message));
     begin = end = false;
@@ -32,7 +34,15 @@ void Hardware::Measure()
             iter++;
         }
 
-    } while(!end);
+    } while(!end && _timer.isActive());
+
+    if(!_timer.isActive())
+    {
+        static unsigned int timeoutCount = 0;
+        ++timeoutCount;
+        qDebug() << "Brak odpowiedzi sprzetu (" << timeoutCount << ")";
+        return;
+    }
 
     meas meas_struct;
     QString str = (const char*) meas_raw;
