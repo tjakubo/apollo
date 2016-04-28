@@ -43,7 +43,7 @@ std::string out;
 char c; bool fail = false;
 while(!end)
 {
-    if( (fail = (!_reader.read_char(c))) ) break;
+    if( (fail = (!_reader.read_char(c))) ) break; // TUTAJ WARNING
     if(!begin && c=='b')
         begin = true;
     if(begin) out += c;
