@@ -1,4 +1,4 @@
-#include "inputwindow.h"
+#include "inputwindow.hh"
 #include "ui_inputwindow.h"
 
 InputWindow::InputWindow(Hardware *HWlink) :

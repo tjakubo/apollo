@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <boost/asio.hpp>
 #include <thread>
+#include "blocking_reader.hh"
 
 #define MEAS_PORT "/dev/ttyS0"
 #define SAMPLE_NUM_MAX 30
@@ -38,12 +39,16 @@ class Hardware: public QWidget{
     boost::asio::io_service _ios;
     boost::asio::serial_port _sp;
     QTimer _timer;
+    blocking_reader _reader;
+    unsigned int _listeners;
+
 
     // Zmienne do przetwarzania pomiaru
     bool _rawDataSent;   // czy powinna wysylac surowe dane
     meas _measCal;       // wartosci do kalibracji pomiaru
     int _avgSampleNum;   // ilosc probek do usredniania pomiaru
     meas Process(meas measurement);
+
 
 
 public:

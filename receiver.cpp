@@ -1,4 +1,4 @@
-#include "reciever.h"
+#include "receiver.hh"
 
 Reciever::Reciever(Hardware *sourceHW, QWidget *parent) :
     QWidget(parent)

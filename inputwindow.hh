@@ -10,9 +10,9 @@
 #define HARDWARE_H
 #endif
 
-#ifndef RECIEVER_H
-#include "reciever.hh"
-#define RECIEVER_H
+#ifndef RECEIVER_H
+#include "receiver.hh"
+#define RECEIVER_H
 #endif
 
 namespace Ui {

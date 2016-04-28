@@ -17,7 +17,7 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     hardware.cpp \
     inputwindow.cpp \
-    reciever.cpp
+    receiver.cpp
 
 LIBS += -L/usr/lib/x86_64-linux-gnu -lboost_system
 
@@ -25,7 +25,10 @@ HEADERS  += \
     hardware.hh \
     inputwindow.hh \
     mainwindow.hh \
-    reciever.hh
+    blocking_reader.hh \
+    receiver.hh
 
 FORMS    += mainwindow.ui \
     inputwindow.ui
+
+DISTFILES +=

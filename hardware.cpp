@@ -1,29 +1,32 @@
-#include "hardware.h"
+#include "hardware.hh"
 
 
 Hardware::Hardware(QWidget *parent):
     QWidget(parent),
     _sp(_ios, MEAS_PORT),
+     _reader(_sp, 50),
     _measCal(0, 0, 0, 1024)
 {
+   // _ios.run();
     _sp.set_option(boost::asio::serial_port::baud_rate(9600));
     _rawDataSent = false;
     _avgSampleNum = 1;
-    _timer.setSingleShot(true);
+   // _timer.setSingleShot(true);
+    connect(&_timer, SIGNAL(timeout()), this, SLOT(RePoll()));
 }
 
 void Hardware::Measure()
 {
-    char tmp[16];
-    char meas_raw[32];
+    //char tmp[16];
+    //char meas_raw[32];
     bool begin, end;
-    int iter;
-    _timer.start(TIMEOUT_MS);
+    //int iter;
+    //_timer.start(TIMEOUT_MS);
     std::string message = "m";
     _sp.write_some(boost::asio::buffer(message));
     begin = end = false;
-    iter = 0;
-    do
+    //iter = 0;
+    /*do
     {
         int read = _sp.read_some(boost::asio::buffer(tmp));
         for(int i=0; (i<read) && !end; i++)
@@ -34,9 +37,21 @@ void Hardware::Measure()
             iter++;
         }
 
-    } while(!end && _timer.isActive());
+    } while(!end && _timer.isActive());*/
 
-    if(!_timer.isActive())
+std::string out;
+char c; bool fail = false;
+while(!end)
+{
+    if( (fail = (!_reader.read_char(c))) ) break;
+    if(!begin && c=='b')
+        begin = true;
+    if(begin) out += c;
+    if(begin && c=='e')
+        end = true;
+}
+
+    if(fail)
     {
         static unsigned int timeoutCount = 0;
         ++timeoutCount;
@@ -45,7 +60,8 @@ void Hardware::Measure()
     }
 
     meas meas_struct;
-    QString str = (const char*) meas_raw;
+    //QString str = (const char*) meas_raw;
+    QString str = out.c_str();
     meas_struct.x = str.split(" ")[1].toInt();
     meas_struct.y = str.split(" ")[2].toInt();
     meas_struct.z = str.split(" ")[3].toInt();
@@ -92,8 +108,6 @@ void Hardware::SetSampleNum(int newSampleNum)
 int Hardware::GetSampleNum(){ return _avgSampleNum; }
 
 void Hardware::SetRawDataStatus(bool rawSent){ _rawDataSent = rawSent; }
-
-
 
 meas::meas(): x(0), y(0), z(0) {}
 meas::meas(int nx, int ny, int nz, int np): x(nx), y(ny), z(nz), p(np) {}

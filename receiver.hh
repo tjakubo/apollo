@@ -1,5 +1,5 @@
-#ifndef RECIEVER_H
-#define RECIEVER_H
+#ifndef RECEIVER_H
+#define RECEIVER_H
 
 #ifndef HARDWARE_H
 #include "hardware.hh"
@@ -20,4 +20,4 @@ public slots:
     virtual void NewRawDataRecieved(QString newRaw);
 };
 
-#endif // RECIEVER_H
+#endif // RECEIVER_H
