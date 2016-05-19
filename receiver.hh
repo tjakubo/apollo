@@ -8,16 +8,16 @@
 
 #include <QWidget>
 
-class Reciever : public QWidget
+class Receiver : public QWidget
 {
     Q_OBJECT
 public:
-    explicit Reciever(Hardware *sourceHW, QWidget *parent = 0);
+    explicit Receiver(Hardware *sourceHW, QWidget *parent = 0);
     
 public slots:
-    virtual void NewMeasurementRecieved(meas newMeas) = 0;
-    virtual void NewCalibrationDataRecieved(meas calData, int sampleNum);
-    virtual void NewRawDataRecieved(QString newRaw);
+    virtual void NewMeasurementReceived(meas newMeas) = 0;
+    virtual void NewCalibrationDataReceived(meas calData, int sampleNum);
+    virtual void NewRawDataReceived(QString newRaw);
 };
 
 #endif // RECEIVER_H

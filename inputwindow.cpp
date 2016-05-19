@@ -2,7 +2,7 @@
 #include "ui_inputwindow.h"
 
 InputWindow::InputWindow(Hardware *HWlink) :
-        Reciever(HWlink),
+        Receiver(HWlink),
     ui(new Ui::InputWindow)
 {
         ui->setupUi(this);
@@ -10,9 +10,9 @@ InputWindow::InputWindow(Hardware *HWlink) :
     _HWlink->SetCal(_HWlink->GetCal());
 
 
-    qDebug() << connect(_HWlink, SIGNAL(NewMeasurement(meas)), this, SLOT(NewMeasurementRecieved(meas)));
-    qDebug() << connect(_HWlink, SIGNAL(NewCalibrationData(meas,int)), this, SLOT(NewCalibrationDataRecieved(meas,int)));
-    qDebug() << connect(_HWlink, SIGNAL(NewRawData(QString)), this, SLOT(NewRawDataRecieved(QString)));
+    qDebug() << connect(_HWlink, SIGNAL(NewMeasurement(meas)), this, SLOT(NewMeasurementReceived(meas)));
+    qDebug() << connect(_HWlink, SIGNAL(NewCalibrationData(meas,int)), this, SLOT(NewCalibrationDataReceived(meas,int)));
+    qDebug() << connect(_HWlink, SIGNAL(NewRawData(QString)), this, SLOT(NewRawDataReceived(QString)));
 }
 
 InputWindow::~InputWindow()
@@ -119,9 +119,9 @@ void InputWindow::paintEvent(QPaintEvent *)
 
 }
 
-void InputWindow::NewMeasurementRecieved(meas newMeas) { _actMeas = newMeas; }
+void InputWindow::NewMeasurementReceived(meas newMeas) { _actMeas = newMeas; }
 
-void InputWindow::NewRawDataRecieved(QString newRaw)
+void InputWindow::NewRawDataReceived(QString newRaw)
 {
     ui->rawViewer->append(newRaw);
 }
@@ -141,7 +141,7 @@ void InputWindow::UpdateView()
     this->update();
 }
 
-void InputWindow::NewCalibrationDataRecieved(meas calData, int sampleNum)
+void InputWindow::NewCalibrationDataReceived(meas calData, int sampleNum)
 {
     _actCalData = calData;
     _actSampleNum = sampleNum;

@@ -20,7 +20,7 @@ class InputWindow;
 }
 
 // KLASA ZARZADZAJACA OKIENKIEM PODGLADU DANYCH I KALIBRACJI
-class InputWindow : public Reciever
+class InputWindow : public Receiver
 {
     Q_OBJECT
     meas _actMeas;      // ostatnia wartosc pomiaru
@@ -39,9 +39,9 @@ public:
 
 public slots:
     // Sloty reagujace na nowe dane
-    void NewMeasurementRecieved(meas newMeas);
-    void NewCalibrationDataRecieved(meas calData, int sampleNum);
-    void NewRawDataRecieved(QString newRaw);
+    void NewMeasurementReceived(meas newMeas);
+    void NewCalibrationDataReceived(meas calData, int sampleNum);
+    void NewRawDataReceived(QString newRaw);
 
     // Odswiez elementy pasywne widoku
     void UpdateView();

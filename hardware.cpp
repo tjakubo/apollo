@@ -15,6 +15,22 @@ Hardware::Hardware(QWidget *parent):
     connect(&_timer, SIGNAL(timeout()), this, SLOT(RePoll()));
 }
 
+void Hardware::SimMeasure()
+{
+    meas meas_struct;
+    //QString str = (const char*) meas_raw;
+    QString str = SIM_MEAS_STR;
+    meas_struct.x = str.split(" ")[1].toInt();
+    meas_struct.y = str.split(" ")[2].toInt();
+    meas_struct.z = str.split(" ")[3].toInt();
+    meas_struct.p = str.split(" ")[4].toInt();
+
+    emit NewMeasurement(Process(meas_struct));
+
+    if(_rawDataSent) { emit NewRawData(str); }
+
+}
+
 void Hardware::Measure()
 {
     //char tmp[16];

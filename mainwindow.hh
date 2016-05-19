@@ -11,6 +11,11 @@
 #define INPUTWINDOW_H
 #endif
 
+#ifndef GAMEWINDOW_HH
+#include "gamewindow.hh"
+#define GAMEWINDOW_HH
+#endif
+
 #include <QMainWindow>
 #include <QPainter>
 #include <QString>
@@ -19,6 +24,8 @@
 
 #define VIEW_FREQ 60 // Odswiezanie okienek [Hz]
 #define MEAS_FREQ 30 // Odswiezanie pomiaru [Hz]
+
+#define SIM_MEAS false
 
 namespace Ui {
 class MainWindow;
@@ -30,6 +37,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
     Hardware *_HWlink;         // (tworzona tutaj) klasa sprzetu
     InputWindow *_InputWindow; // (tworzona tutaj) klasa okna danych
+    GameWindow *_GameWindow;   // (towrzona tutaj( klasa okna gry
     
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -37,6 +45,8 @@ public:
     
 private slots:
     void on_Button_clicked();
+
+    void on_pushButton_clicked();
 
 private:
     Ui::MainWindow *ui;

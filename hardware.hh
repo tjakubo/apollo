@@ -14,6 +14,8 @@
 #define INT_1G 64
 #define TIMEOUT_MS 1000
 
+#define SIM_MEAS_STR "b 20 -15 64 512 e"
+
 // STRUKTURA ZAWIERAJACA JEDEN POMIAR
 struct meas
 {
@@ -65,6 +67,7 @@ public:
 
 public slots:
     void Measure(); // Metoda rozpoczynajaca nowy pomiar
+    void SimMeasure();
 
 signals:
     void NewMeasurement(meas measurement);
