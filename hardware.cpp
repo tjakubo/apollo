@@ -4,14 +4,14 @@
 Hardware::Hardware(QWidget *parent):
     QWidget(parent),
     _sp(_ios, MEAS_PORT),
-     _reader(_sp, 50),
+    _reader(_sp, 50),
     _measCal(0, 0, 0, 1024)
 {
-   // _ios.run();
+    // _ios.run();
     _sp.set_option(boost::asio::serial_port::baud_rate(9600));
     _rawDataSent = false;
     _avgSampleNum = 1;
-   // _timer.setSingleShot(true);
+    // _timer.setSingleShot(true);
     connect(&_timer, SIGNAL(timeout()), this, SLOT(RePoll()));
 }
 
@@ -55,17 +55,17 @@ void Hardware::Measure()
 
     } while(!end && _timer.isActive());*/
 
-std::string out;
-char c; bool fail = false;
-while(!end)
-{
-    if( (fail = (!_reader.read_char(c))) ) break;
-    if(!begin && c=='b')
-        begin = true;
-    if(begin) out += c;
-    if(begin && c=='e')
-        end = true;
-}
+    std::string out;
+    char c; bool fail = false;
+    while(!end)
+    {
+        if( fail = (!_reader.read_char(c)) ) break; // TUTAJ WARNING
+        if(!begin && c=='b')
+            begin = true;
+        if(begin) out += c;
+        if(begin && c=='e')
+            end = true;
+    }
 
     if(fail)
     {
@@ -92,19 +92,19 @@ meas Hardware::Process(meas measurement)
 {
     if(_avgSampleNum > 1)
     {
-     static std::vector<meas> measHist;
-     while((unsigned) _avgSampleNum < measHist.size()) measHist.erase(measHist.begin());
-     while((unsigned) _avgSampleNum > measHist.size()) measHist.push_back(measurement);
+        static std::vector<meas> measHist;
+        while((unsigned) _avgSampleNum < measHist.size()) measHist.erase(measHist.begin());
+        while((unsigned) _avgSampleNum > measHist.size()) measHist.push_back(measurement);
 
-     measHist.erase(measHist.begin());
-     measHist.push_back(measurement);
-     for(unsigned int i=0; i<(measHist.size()-1); i++) measurement = measurement + measHist[i];
-     measurement = measurement/((int) measHist.size());
+        measHist.erase(measHist.begin());
+        measHist.push_back(measurement);
+        for(unsigned int i=0; i<(measHist.size()-1); i++) measurement = measurement + measHist[i];
+        measurement = measurement/((int) measHist.size());
     }
 
- measurement.OffsetXYZ(_measCal);
- if(measurement.p > _measCal.p) measurement.p = _measCal.p;
- return measurement;
+    measurement.OffsetXYZ(_measCal);
+    if(measurement.p > _measCal.p) measurement.p = _measCal.p;
+    return measurement;
 }
 
 void Hardware::SetCal(meas newCal)
