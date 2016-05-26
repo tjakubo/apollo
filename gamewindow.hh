@@ -10,6 +10,8 @@
 #include <QTime>
 #include <cstdlib>
 
+#define W_HEIGHT 650
+
 #ifndef HARDWARE_H
 #include "hardware.hh"
 #define HARDWARE_H
@@ -19,6 +21,8 @@
 #include "receiver.hh"
 #define RECEIVER_H
 #endif
+
+QPoint Trans(QPoint p);
 
 struct pos2d
 {
@@ -58,35 +62,6 @@ public:
 
 };
 
-class Ship : public PhysicsObj
-{
-    double _legAngle;
-    double _legLength;
-    double _fragileRadius;
-
-    double _maxThrust;
-    double _currThrustPerc;
-
-    double _maxTorq;
-    double _currTorqPerc;
-
-public:
-    Ship();
-
-    void Step(double dt = -1);
-
-    //void Stop();
-    void Steer(double newThrustPerc, double newTorqPerc);
-
-    //QPoint Pos();
-    //void SetPos(QPoint newPos);
-    //void SetPosRand(double maxCenterOffsetPerc, double minHeightPerc);
-
-    //double Angle();
-    //double AngleRad();
-    //QVector<double> GetPos();
-
-};
 
 class Terrain
 {
@@ -99,9 +74,47 @@ public:
     int LowestElev();
     int ElevAtX(int xPos);
     double TiltAtX(int xPos);
+
+    void Draw(QPainter *painter);
+
 };
 
-// QTransform
+class Ship : public PhysicsObj
+{
+    double _legAngle;
+    double _legLength;
+    double _fragileRadius;
+
+    double _maxThrust;
+    double _currThrustPerc;
+
+    double _maxTorq;
+    double _currTorqPerc;
+
+    Terrain *_terr;
+
+public:
+    Ship(Terrain *terr);
+
+    void Step(double dt = -1);
+
+    //void Stop();
+    void Steer(double newThrustPerc, double newTorqPerc);
+
+    void Draw(QPainter *painter);
+
+    void Stop();
+
+
+    //QPoint Pos();
+    //void SetPos(QPoint newPos);
+    //void SetPosRand(double maxCenterOffsetPerc, double minHeightPerc);
+
+    //double Angle();
+    //double AngleRad();
+    //QVector<double> GetPos();
+
+};
 
 namespace Ui {
 class GameWindow;

@@ -9,8 +9,9 @@ void PhysicsObj::Step(double dt)
     if(firstRun){ deltaTime = 0.001; firstRun = false; }
     if(dt > 0) deltaTime = dt;
 
-    _pos = _pos + _pos*deltaTime;
+    _pos = _pos + _vel*deltaTime;
     _vel = _vel + _acc*deltaTime + _gravity*deltaTime;
+    qDebug() << "step" << _vel.x << _vel.y << _vel.ang;
 
 }
 
@@ -26,6 +27,16 @@ PhysicsObj::PhysicsObj(pos2d initPos, pos2d initGrav):
     _gravity(initGrav)
 {}
 
+void Terrain::Draw(QPainter *painter)
+{
+    for(int i=1; i<_verts.size(); i++)
+    {
+        painter->drawLine(Trans(_verts[i-1]), Trans(_verts[i]));
+        //qDebug() << Trans(_verts[i-1]) << Trans(_verts[i]);
+    }
+}
+
+void Draw(QPainter *painter){};
 
 
 
@@ -35,7 +46,7 @@ GameWindow::GameWindow(Hardware *HWlink) :
     ui(new Ui::GameWindow)
 {
     _terr = new Terrain(0, 1000, 4, 10, 0.15);
-    _lander = new Ship();
+    _lander = new Ship(_terr);
     //_lander->SetPosRand(0.25, 0.8);
     ui->setupUi(this);
 
@@ -56,10 +67,10 @@ void GameWindow::NewMeasurementReceived(meas newMeas)
     int set = (((double) newMeas.x)/64) * -90;
     if(newMeas.z < 0) set = 180 - set;
     _lander->Steer(((double) set)/100, ((double) tilt)/100);
-    //qDebug() << ((double) set)/100 << " : " << ((double) tilt)/100;
 }
 
-Ship::Ship()
+Ship::Ship():
+    PhysicsObj(pos2d(0, 0, 0), pos2d(0, -1, 0))
 {
     _maxThrust = 100;
     _maxTorq = 1;
@@ -78,6 +89,11 @@ void Ship::Steer(double newThrustPerc, double newTorqPerc)
     _currThrustPerc = newThrustPerc;
     _currTorqPerc = newTorqPerc;
     //qDebug() << _currThrustPerc;
+}
+
+void Ship::Stop()
+{
+    _vel = pos2d(0, 0, 0);
 }
 
 void Ship::Step(double dt)
@@ -153,6 +169,15 @@ Terrain::Terrain(int xMin, int xMax, int vertCountMin, int vertCountMax, double 
         _verts[i].rx() = _verts[i].x()*normCoeff;
         _verts[i].ry() = _verts[i].y()*normCoeff;
     }
+    int min = _verts[0].y();
+    for(int i=1; i<_verts.size(); i++)
+    {
+        if(_verts[i].y() < min) min = _verts[i].y();
+    }
+    for(int i=0; i<_verts.size(); i++)
+    {
+        _verts[i].ry() = _verts[i].y() - (min*1.5);
+    }
 
 }
 
@@ -176,7 +201,7 @@ int Terrain::ElevAtX(int xPos)
     int i = 1;
     while(_verts[i].x() < xPos) i++;
     double dY = (_verts[i].y() - _verts[i-1].y())/(double) (_verts[i].x() - _verts[i-1].x());
-    return (xPos - _verts[i-1].x())*dY + _verts[i-1].y() - LowestElev()*2 + 200;
+    return (xPos - _verts[i-1].x())*dY + _verts[i-1].y();
 }
 
 double Terrain::TiltAtX(int xPos)
@@ -189,6 +214,12 @@ double Terrain::TiltAtX(int xPos)
     return qAtan(dY);
 }
 
+QPoint Trans(QPoint p)
+{
+    return QPoint(p.x(), W_HEIGHT-p.y());
+}
+
+
 void GameWindow::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
@@ -196,11 +227,13 @@ void GameWindow::paintEvent(QPaintEvent *event)
 
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(line);
-    QPoint ship = _lander->Pos().Point();
+    _terr->Draw(&painter);
+    QPoint ship = Trans(_lander->Pos().Point());
     painter.translate(ship);
     qDebug() << ship.x() << " : " << ship.y();
     painter.drawLine(10, 10, -10, -10);
-    painter.drawLine(-10, -10, 10, 10);
+    painter.drawLine(-10, 10, 10, -10);
+    _terr->Draw(&painter);
     /*
     //qDebug() << _terr->LowestElev();
     painter.translate(0, 550+(_terr->LowestElev()*2));
@@ -222,8 +255,8 @@ void GameWindow::paintEvent(QPaintEvent *event)
     painter.rotate(45);
     painter.drawLine(0, 0, 0, 30);
     painter.rotate(-90);
-    painter.drawLine(0, 0, 0, 30);
-    StepShip();*/
+    painter.drawLine(0, 0, 0, 30);*/
+    StepShip();
     //_lander->Step();
 
     //painter.resetTransform();
