@@ -1,17 +1,46 @@
 #include "gamewindow.hh"
 #include "ui_gamewindow.h"
 
+void PhysicsObj::Step(double dt)
+{
+    double deltaTime = (double) _timer.restart()/1000;
+
+    static bool firstRun = true;
+    if(firstRun){ deltaTime = 0.001; firstRun = false; }
+    if(dt > 0) deltaTime = dt;
+
+    _pos = _pos + _pos*deltaTime;
+    _vel = _vel + _acc*deltaTime + _gravity*deltaTime;
+
+}
+
+void PhysicsObj::AddForce(pos2d aForce)
+{
+    _acc = _acc + aForce;
+}
+
+PhysicsObj::PhysicsObj(): _pos(), _vel(), _acc(), _gravity() {}
+
+PhysicsObj::PhysicsObj(pos2d initPos, pos2d initGrav):
+    _pos(initPos),
+    _gravity(initGrav)
+{}
+
+
+
+
+
 GameWindow::GameWindow(Hardware *HWlink) :
     Receiver(HWlink),
     ui(new Ui::GameWindow)
 {
     _terr = new Terrain(0, 1000, 4, 10, 0.15);
     _lander = new Ship();
-    _lander->SetPosRand(0.25, 0.8);
+    //_lander->SetPosRand(0.25, 0.8);
     ui->setupUi(this);
 
     QTime time = QTime::currentTime();
-            qsrand((uint)time.msec());
+    qsrand((uint)time.msec());
 }
 
 GameWindow::~GameWindow()
@@ -35,27 +64,9 @@ Ship::Ship()
     _maxThrust = 100;
     _maxTorq = 1;
 
-    _xPos = _yPos = _ang = 0;
-    _xVel = _yVel = _angVel = 0;
-
     _legAngle = 45;
     _legLength = 30;
     _fragileRadius = 15;
-}
-
-void Ship::SetPosRand(double maxCenterOffsetPerc, double minHeightPerc)
-{
-    double w=1000, h=750;
-    _xPos = rand()%((int) (w*maxCenterOffsetPerc*2)) + (w/2 -w*maxCenterOffsetPerc);
-    _yPos = rand()%((int) (h*(1-minHeightPerc)));
-    //qDebug() << Pos();
-
-}
-
-void Ship::SetPos(QPoint newPos)
-{
-    _xPos = newPos.x();
-    _yPos = newPos.y();
 }
 
 void Ship::Steer(double newThrustPerc, double newTorqPerc)
@@ -69,8 +80,10 @@ void Ship::Steer(double newThrustPerc, double newTorqPerc)
     //qDebug() << _currThrustPerc;
 }
 
-void Ship::Step()
+void Ship::Step(double dt)
 {
+    PhysicsObj::Step();
+    /*
     double deltaTime = (double) Timer.restart()/1000;
 
     static bool firstRun = true;
@@ -88,7 +101,7 @@ void Ship::Step()
     double currThrust = _currThrustPerc * _maxThrust;
     _xAcc = currThrust * qSin(_ang);
     _yAcc = -1 * currThrust * qCos(_ang);
-    _yAcc +=5;
+    _yAcc +=5;*/
     //qDebug() << _currThrustPerc << " : " << _maxThrust << " : " << currThrust;
 
 }
@@ -96,7 +109,7 @@ void Ship::Step()
 void GameWindow::StepShip()
 {
     _lander->Step();
-    double ang = _lander->AngleRad();
+    /*double ang = _lander->AngleRad();
     double legOffset = 45.0*(2.0*3.1416)/360.0;
     QPoint leg1(30*qCos(ang+legOffset), 30*qSin(ang+legOffset)), leg2(30*qCos(ang+3*legOffset), 30*qSin(ang+3*legOffset));
     leg1 += _lander->Pos(); leg2 += _lander->Pos();
@@ -115,53 +128,31 @@ void GameWindow::StepShip()
     }
     if((shipmargin = ((750-_lander->Pos().y()) - _terr->ElevAtX(_lander->Pos().x()))) < 15)
         _lander->SetPosRand(0.25, 0.8);
-    qDebug() << leg1margin << " : " << leg2margin;
-
-}
-
-QPoint Ship::Pos()
-{
-    return QPoint(_xPos, _yPos);
-}
-
-double Ship::Angle()
-{
-    return (_ang*360)/(3.1416*2);
-}
-
-double Ship::AngleRad()
-{
-    return _ang;
-}
-
-
-void Ship::Stop()
-{
-    _xVel = _yVel = _angVel = 0;
+    qDebug() << leg1margin << " : " << leg2margin;*/
 
 }
 
 Terrain::Terrain(int xMin, int xMax, int vertCountMin, int vertCountMax, double dYmax)
 {
-   int vertCount = (rand()%(vertCountMax - vertCountMin)) + vertCountMin;
+    int vertCount = (rand()%(vertCountMax - vertCountMin)) + vertCountMin;
 
-   int xCurr = 0;
-   int yCurr = rand()%( (int)((xMax - xMin)*dYmax)) - dYmax/2;
-   _verts.push_back(QPoint(xCurr, yCurr));
-   for(int i=0; i<vertCount; i++)
-   {
-       int dX = rand()%1000;
-       xCurr += dX;
-       int yMax = dYmax * dX;
-       int yCurr = rand()%(2*yMax) - yMax;
-       _verts.push_back(QPoint(xCurr, yCurr));
-   }
-   double normCoeff = (double) xMax/_verts[_verts.size()-1].x();
-   for(int i=0; i<_verts.size(); i++)
-   {
-       _verts[i].rx() = _verts[i].x()*normCoeff;
-       _verts[i].ry() = _verts[i].y()*normCoeff;
-   }
+    int xCurr = 0;
+    int yCurr = rand()%( (int)((xMax - xMin)*dYmax)) - dYmax/2;
+    _verts.push_back(QPoint(xCurr, yCurr));
+    for(int i=0; i<vertCount; i++)
+    {
+        int dX = rand()%1000;
+        xCurr += dX;
+        int yMax = dYmax * dX;
+        int yCurr = rand()%(2*yMax) - yMax;
+        _verts.push_back(QPoint(xCurr, yCurr));
+    }
+    double normCoeff = (double) xMax/_verts[_verts.size()-1].x();
+    for(int i=0; i<_verts.size(); i++)
+    {
+        _verts[i].rx() = _verts[i].x()*normCoeff;
+        _verts[i].ry() = _verts[i].y()*normCoeff;
+    }
 
 }
 
@@ -185,7 +176,7 @@ int Terrain::ElevAtX(int xPos)
     int i = 1;
     while(_verts[i].x() < xPos) i++;
     double dY = (_verts[i].y() - _verts[i-1].y())/(double) (_verts[i].x() - _verts[i-1].x());
-    return (xPos - _verts[i-1].x())*dY + _verts[i-1].y() - LowestElev()*2;
+    return (xPos - _verts[i-1].x())*dY + _verts[i-1].y() - LowestElev()*2 + 200;
 }
 
 double Terrain::TiltAtX(int xPos)
@@ -202,10 +193,17 @@ void GameWindow::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     QPen line(Qt::black, 3, Qt::SolidLine);
+
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(line);
+    QPoint ship = _lander->Pos().Point();
+    painter.translate(ship);
+    qDebug() << ship.x() << " : " << ship.y();
+    painter.drawLine(10, 10, -10, -10);
+    painter.drawLine(-10, -10, 10, 10);
+    /*
     //qDebug() << _terr->LowestElev();
-    painter.translate(0, 750+(_terr->LowestElev()*2));
+    painter.translate(0, 550+(_terr->LowestElev()*2));
     painter.rotate(0);
 
     for(int i=0; i<(_terr->Vec().size()-1); i++)
@@ -225,7 +223,7 @@ void GameWindow::paintEvent(QPaintEvent *event)
     painter.drawLine(0, 0, 0, 30);
     painter.rotate(-90);
     painter.drawLine(0, 0, 0, 30);
-    StepShip();
+    StepShip();*/
     //_lander->Step();
 
     //painter.resetTransform();
@@ -240,6 +238,6 @@ const QVector<QPoint> Terrain::Vec(){ return _verts; }
 
 void GameWindow::on_pushButton_clicked()
 {
-    _lander->SetPosRand(0.25, 0.8);
-    _lander->Stop();
+    //_lander->SetPosRand(0.25, 0.8);
+    //_lander->Stop();
 }
