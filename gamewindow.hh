@@ -9,6 +9,10 @@
 #include <QtCore/qmath.h>
 #include <QTime>
 #include <cstdlib>
+#include <QImage>
+#include <QPixmap>
+#include <QPolygon>
+#include <QPainterPath>
 
 #define W_HEIGHT 650
 
@@ -31,14 +35,15 @@ struct pos2d
     pos2d() { x = y = ang = 0; }
     pos2d(double nx, double ny, double na):x(nx),y(ny),ang(na){}
     QPoint Point() const { return QPoint(x, y); }
-    double Mag(){ return sqrt(pow(x, 2) + pow(y, 2)); }
-    double AngRad(){ return ang; }
-    double AngDeg(){ return qRadiansToDegrees(ang); }
-    pos2d operator+(const pos2d& p){ return pos2d(x+p.x, y+p.y, ang+p.ang); }
+    double Mag() const { return sqrt(pow(x, 2) + pow(y, 2)); }
+    double AngRad() const { return ang; }
+    double AngDeg() const { return qRadiansToDegrees(ang); }
+    pos2d operator+(const pos2d& p) { return pos2d(x+p.x, y+p.y, ang+p.ang); }
     pos2d operator*(double m) { return pos2d(x*m, y*m, ang*m); }
+    pos2d operator*(double m) const { return pos2d(x*m, y*m, ang*m); }
 };
 
-pos2d& operator+(const pos2d& p1, const pos2d& p2);
+pos2d operator+(const pos2d& p1, const pos2d& p2);
 
 class PhysicsObj
 {
@@ -47,18 +52,24 @@ class PhysicsObj
     pos2d _acc;
     pos2d _gravity;
     QElapsedTimer _timer;
+    bool _firstRun;
 
 public:
 
     PhysicsObj();
-    PhysicsObj(pos2d initPos, pos2d initGrav);
+    PhysicsObj(pos2d initPos, pos2d initVel, pos2d initGrav);
 
     virtual void Step(double dt = -1);
     const pos2d& Pos(){ return _pos; }
-    const pos2d& Vel(){ return _vel; }
+    void SetPos(pos2d newPos){ _pos = newPos; }
+    const pos2d& Vel() const { return _vel; }
+    const pos2d& Grav() const {return _gravity; }
 
-    pos2d& Acc(){ return _acc; }
+    void Stop();
+    pos2d Acc(){ return _acc; }
+    void SetAcc(pos2d newAcc){ _acc = newAcc; }
     void AddForce(pos2d aForce);
+    void RotateVel(double angDeg);
 
 };
 
@@ -79,17 +90,36 @@ public:
 
 };
 
+class Particle : public PhysicsObj
+{
+    double _lifespanSec;
+    QElapsedTimer _lifeTimer;
+    double _size;
+    Terrain *_collTerrain;
+public:
+    Particle(pos2d initPos, pos2d initVel, pos2d initGrav, double lifespanSec = 5, double size = 2);
+    bool Expired();
+    void Draw(QPainter *painter);
+    void Step(double dt = -1);
+    void SetTerrain(Terrain *terr);
+
+};
+
 class Ship : public PhysicsObj
 {
     double _legAngle;
     double _legLength;
+    double _legMaxImpactVel;
     double _fragileRadius;
+    int _state;
 
     double _maxThrust;
     double _currThrustPerc;
 
     double _maxTorq;
     double _currTorqPerc;
+
+    std::vector<Particle*> _spawnedParticles;
 
     Terrain *_terr;
 
@@ -103,12 +133,12 @@ public:
 
     void Draw(QPainter *painter);
 
-    void Stop();
-
-
     //QPoint Pos();
     //void SetPos(QPoint newPos);
-    //void SetPosRand(double maxCenterOffsetPerc, double minHeightPerc);
+    void SetRandPos();
+
+    std::vector<double>* ParseData();
+    void Reset();
 
     //double Angle();
     //double AngleRad();
@@ -132,7 +162,7 @@ public:
     explicit GameWindow(Hardware *HWlink);
     ~GameWindow();
     void paintEvent(QPaintEvent *);
-    void StepShip();
+    void StepScene();
 
 public slots:
     void NewMeasurementReceived(meas newMeas);

@@ -35,3 +35,6 @@ FORMS    += mainwindow.ui \
     gamewindow.ui
 
 DISTFILES +=
+
+RESOURCES += \
+    textures.qrc

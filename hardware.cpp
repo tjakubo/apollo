@@ -10,9 +10,9 @@ Hardware::Hardware(QWidget *parent):
     // _ios.run();
     _sp.set_option(boost::asio::serial_port::baud_rate(9600));
     _rawDataSent = false;
-    _avgSampleNum = 1;
+    _avgSampleNum = 6;
     // _timer.setSingleShot(true);
-    connect(&_timer, SIGNAL(timeout()), this, SLOT(RePoll()));
+    //connect(&_timer, SIGNAL(timeout()), this, SLOT(RePoll()));
 }
 
 void Hardware::SimMeasure()
