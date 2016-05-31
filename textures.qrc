@@ -11,5 +11,6 @@
         <file>res/hud_static_opaque.png</file>
         <file>res/my_bg.png</file>
         <file>res/ship_ok_w.png</file>
+        <file>res/my_lander_ok.png</file>
     </qresource>
 </RCC>

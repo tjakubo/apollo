@@ -68,6 +68,7 @@ public:
     void Stop();
     pos2d Acc(){ return _acc; }
     void SetAcc(pos2d newAcc){ _acc = newAcc; }
+    void SetVel(pos2d newVel) { _vel = newVel; }
     void AddForce(pos2d aForce);
     void RotateVel(double angDeg);
 
@@ -77,6 +78,7 @@ public:
 class Terrain
 {
     QVector<QPoint> _verts;
+    QVector<double> _slopes;
 
 public:
     Terrain(int xMin, int xMax, int vertCountMin, int vertCountMax, double dYmax);
@@ -111,6 +113,7 @@ class Ship : public PhysicsObj
     double _legLength;
     double _legMaxImpactVel;
     double _fragileRadius;
+    bool _leg1coll, _leg2coll;
     int _state;
 
     double _maxThrust;
@@ -136,6 +139,7 @@ public:
     //QPoint Pos();
     //void SetPos(QPoint newPos);
     void SetRandPos();
+    void SpawnPartCloud(int partNum, double velMult = 1, double gravMult = 1, QPoint offset = QPoint(0, 0));
 
     std::vector<double>* ParseData();
     void Reset();

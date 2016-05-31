@@ -7,11 +7,8 @@ void PhysicsObj::Step(double dt)
     if(_firstRun){ deltaTime = 0.001; _firstRun = false;}
     if(dt > 0) deltaTime = dt;
 
-    //qDebug() << deltaTime;
     _pos = _pos + _vel*deltaTime;
     _vel = _vel + _acc*deltaTime + _gravity*deltaTime;
-
-    //qDebug() << "step" << _vel.x << _vel.y << _vel.ang;
 
 }
 
@@ -23,8 +20,12 @@ void PhysicsObj::AddForce(pos2d aForce)
 void PhysicsObj::RotateVel(double angDeg)
 {
     double angRad = qDegreesToRadians(angDeg);
-    _vel.x = _vel.x*qSin(angRad);
-    _vel.y = _vel.y*qCos(angRad);
+    //double mag = Mag();
+    pos2d oldVel = _vel;
+    //qDebug() << Vel().Mag();
+    _vel.x = oldVel.x*qCos(angRad) - oldVel.y*qSin(angRad);
+    _vel.y = oldVel.x*qSin(angRad) + oldVel.y*qCos(angRad);
+    //qDebug() << Vel().Mag() << "asdasddasddsd";
 }
 
 PhysicsObj::PhysicsObj(): _pos(), _vel(), _acc(), _gravity(), _firstRun(true) {}
@@ -68,7 +69,7 @@ void Ship::Draw(QPainter *painter)
     //painter->resetTransform();
 
 
-    static QPixmap shipImage(":/res/ship_ok_w.png");
+    static QPixmap shipImage(":/res/my_lander_ok.png");
 
     if(_state > 0)
     {
@@ -83,7 +84,7 @@ void Ship::Draw(QPainter *painter)
             shipImage.load(":/res/ship_rleg_mangled.png");
             break;
         default:
-            shipImage.load(":/res/ship_ok_w.png");
+            shipImage.load(":/res/my_lander_ok.png");
             _state = 0;
             break;
 
@@ -93,7 +94,8 @@ void Ship::Draw(QPainter *painter)
     painter->rotate(Pos().AngDeg());
     //painter->drawLine(-20, -20, 20, 20);
     //painter->drawLine(-20, 20, 20, -20);
-    painter->scale(0.3, 0.3);
+    //painter->scale(0.3, 0.3);
+    painter->scale(0.5, 0.5);
     painter->drawPixmap(QPoint(-1*shipImage.width()/2, -1*shipImage.height()/2), shipImage);
     painter->resetTransform();
 
@@ -145,17 +147,18 @@ void GameWindow::NewMeasurementReceived(meas newMeas)
 }
 
 Ship::Ship(Terrain *terr):
-    PhysicsObj(pos2d(0, 0, 0), pos2d(0, 0, 0), pos2d(0, 2, 0)),
+    PhysicsObj(pos2d(0, 0, 0), pos2d(0, 0, 0), pos2d(0, 5, 0)),
     _terr(terr)
 {
-    _maxThrust = 100;
+    _maxThrust = 60;
     _maxTorq = 1;
     _state = 0;
 
     _legAngle = 45;
-    _legLength = 32;
-    _legMaxImpactVel = 35;
-    _fragileRadius = 15;
+    _legLength = 50;
+    _legMaxImpactVel = 50;
+    _fragileRadius = 30;
+    _leg1coll = _leg2coll = false;
     SetRandPos();
 }
 
@@ -168,7 +171,10 @@ void Ship::Steer(double newThrustPerc, double newTorqPerc)
     _currThrustPerc = newThrustPerc;
     _currTorqPerc = newTorqPerc;
     double actThrust = _currThrustPerc*_maxThrust;
+    //double actThrust = 0;
     double actTorque = _currTorqPerc*_maxTorq;
+
+
     SetAcc(pos2d(actThrust * qSin(Pos().AngRad()), -1*actThrust * qCos(Pos().AngRad()), actTorque));
     //qDebug() << _currThrustPerc;
 }
@@ -180,6 +186,10 @@ void PhysicsObj::Stop()
 
 void Ship::Step(double dt)
 {
+    qDebug() << Vel().ang;
+    //qDebug() << qRadiansToDegrees(qAtan((Vel().y*-1)/Vel().x));
+    //qDebug() << qRadiansToDegrees(qAtan2((Vel().y*-1),Vel().x));
+//qDebug() << Pos().AngDeg();
     double ang = Pos().AngRad();
     double legOffset = _legAngle*(2.0*3.1416)/360.0;
     QPoint leg1(_legLength*qCos(ang+legOffset), _legLength*qSin(ang+legOffset)),
@@ -194,8 +204,18 @@ void Ship::Step(double dt)
             if(Vel().Mag() > _legMaxImpactVel)
             {
                Stop();
+               if(_state == 0) SpawnPartCloud(40, 10, 2);
                _state = 3;
             }
+            else if((Vel().Mag() > 5) || ((Acc() + Grav()).y > 0))
+            {
+                if(!_leg1coll) { Stop(); _leg1coll = true; }
+                if((Pos().AngDeg() < 45) && (Pos().AngDeg() > -45))
+                    SetAcc(pos2d(-5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), -0.3));
+                else
+                    SetAcc(pos2d(5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), 0.3));
+            }
+            else _leg1coll = false;
             //Stop();
             //_lander->SetPos(QPoint(_lander->Pos().x(), _lander->Pos().y()+leg1margin));
         }
@@ -204,15 +224,29 @@ void Ship::Step(double dt)
             if(Vel().Mag() > _legMaxImpactVel)
             {
                Stop();
+               if(_state == 0) SpawnPartCloud(40, 10, 2);
                _state = 2;
             }
+            else if((Vel().Mag() > 5) || ((Acc() + Grav()).y > 0))
+            {
+                if(!_leg2coll) { Stop(); _leg2coll = true; }
+                if((Pos().AngDeg() < 45) && (Pos().AngDeg() > -45))
+                SetAcc(pos2d(5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), 0.3));
+                else
+                    SetAcc(pos2d(-5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), -0.3));
+
+            }
+            else _leg2coll = false;
+
             //qDebug() << Vel().Mag();
             //Stop();
             //_lander->SetPos(QPoint(_lander->Pos().x(), _lander->Pos().y()+leg2margin));
         }
+        if(_leg1coll && _leg2coll) Stop();
         if((shipMargin = (shipCenter.y() - _terr->ElevAtX(shipCenter.x())) - _fragileRadius) <= 0)
         {
             Stop();
+            if(_state == 0) SpawnPartCloud(100, 10, 10);
             _state = 1;
         }
             //qDebug() << shipMargin;
@@ -222,13 +256,13 @@ void Ship::Step(double dt)
         //painter->translate(exhPort);
         //painter->rotate(exhPortFacing);
         //painter->translate(0, 15);
-        exhPort.rx() = exhPort.x() + (-15 * qSin(exhPortFacing));
-        exhPort.ry() = exhPort.y() + (15 * qCos(exhPortFacing));
+        exhPort.rx() = exhPort.x() + (-25 * qSin(exhPortFacing));
+        exhPort.ry() = exhPort.y() + (25 * qCos(exhPortFacing));
 
         for(int i=0; i<4; i++)
             if(rand()%100 <= (_currThrustPerc*100)-1)
             {
-                qDebug() << "SPAWNED";
+                //qDebug() << "SPAWNED";
                 int randAng = rand()%20 - 10;
                 //randAng = qDegreesToRadians((double) randAng);
                 //QPoint exhPortR;
@@ -241,8 +275,8 @@ void Ship::Step(double dt)
 
                 Particle *newParticle = new Particle(pos2d(exhPort.x(), exhPort.y(), 0),
                                                      //(Acc()*-2) + Acc()*(1/Acc().Mag()) + Vel()*-1,
-                                                     (Vel()) + ((Acc()*-3) + (Acc()*(1/Acc().Mag())*-3)) + pos2d(rand()%20-10, rand()%20-10, 0),
-                                                     Grav()*3, 3, 2);
+                                                     Vel() + (Acc()*-3) + ((Acc().Mag()>1)?(Acc()*(1/Acc().Mag())*-3):pos2d(0,0,0)) + pos2d(rand()%20-10, rand()%20-10, 0),
+                                                     Grav()*3, 3, 1);
                 newParticle->SetTerrain(_terr);
                 _spawnedParticles.push_back(newParticle);
             }
@@ -284,11 +318,26 @@ void Ship::Step(double dt)
 void Ship::SetRandPos()
 {
     int x = rand()%400 + 300;
-    int y = rand()%100 + 500;
+    //int y = rand()%100 + 500;
+    int y = rand()%100 + 100;
     x = Trans(QPoint(x, y)).x();
     y = Trans(QPoint(x, y)).y();
     double ang = qDegreesToRadians((double) (rand()%90 - 45));
     SetPos(pos2d(x, y, ang));
+}
+
+void Ship::SpawnPartCloud(int partNum, double velMult, double gravMult, QPoint offset)
+{
+    // Particle(pos2d initPos, pos2d initVel, pos2d initGrav, double lifespanSec = 5, double size = 2);
+    for(int i=0; i<partNum; i++)
+    {
+        Particle *newPart = new Particle(
+                    Pos() + pos2d(offset.x(), offset.y(), 0),
+                    pos2d((((rand()%20) - 10) * velMult), (((rand()%20) - 10) * velMult), 0),
+                    Grav()*gravMult,
+                    10, 3 );
+        _spawnedParticles.push_back(newPart);
+    }
 }
 
 std::vector<double>* Ship::ParseData()
@@ -301,6 +350,7 @@ std::vector<double>* Ship::ParseData()
 
 void Ship::Reset()
 {
+    _leg1coll = _leg2coll = false;
     _state = 10;
     while(_spawnedParticles.size() > 0)
     {
@@ -365,6 +415,10 @@ Terrain::Terrain(int xMin, int xMax, int vertCountMin, int vertCountMax, double 
     {
         _verts[i].ry() = _verts[i].y() - (min*1.5);
     }
+    for(int i=0; i<_verts.size()-1; i++)
+    {
+        _slopes.push_back((double) _verts[i].y() / (double) _verts[i].x());
+    }
 
 }
 
@@ -386,7 +440,7 @@ int Terrain::ElevAtX(int xPos)
     if(xPos > 1000) xPos = 990;
     //static int lowElev = LowestElev();
     int i = 1;
-    while(_verts[i].x() < xPos) i++;
+    while((_verts[i].x() < xPos) && (i < (_verts.size()-1))) i++;
     double dY = (_verts[i].y() - _verts[i-1].y())/(double) (_verts[i].x() - _verts[i-1].x());
     return (xPos - _verts[i-1].x())*dY + _verts[i-1].y();
 }
@@ -395,10 +449,11 @@ double Terrain::TiltAtX(int xPos)
 {
     if(xPos < 0) xPos = 1;
     if(xPos > 1000) xPos = 999;
-    int i = 0;
-    while(_verts[i].x() < xPos && i < _verts.size()) i++;
+    int i = 1;
+    while((_verts[i].x() < xPos) && (i < (_verts.size()-1))) i++;
     double dY = _verts[i].y() - _verts[i-1].y();
-    return qAtan(dY);
+    double dX = _verts[i].x() - _verts[i-1].x();
+    return qAtan2(dY,dX);
 }
 
 QPoint Trans(QPoint p)
@@ -512,10 +567,10 @@ void Particle::Draw(QPainter *painter)
     painter->translate(Pos().Point());
     painter->scale(_size, _size);
     painter->save();
-    QPen part(Qt::cyan, Qt::SolidPattern);
+    QPen part(QColor::fromRgb(255, 255*((double) _lifeTimer.elapsed()/(_lifespanSec*1000)), 0), Qt::SolidPattern);
     painter->setPen(part);
     painter->drawPoint(0, 0);
-    painter->drawEllipse(QPoint(0, 0), 1, 1);
+    // //painter->drawEllipse(QPoint(0, 0), 1, 1);
     //painter->scale(_size/10, _size/10);
    // painter->drawEllipse(QPoint(0, 0), 1, 1);
     painter->restore();
@@ -531,10 +586,20 @@ void Particle::Step(double dt)
     if(_collTerrain != NULL)
     {
         QPoint pos = Trans(Pos().Point());
-        if(pos.y() == _collTerrain->ElevAtX(pos.x()))
+        if(pos.y() <= _collTerrain->ElevAtX(pos.x()))
         {
-            RotateVel(90);
-            qDebug() << _collTerrain->TiltAtX(pos.x());
+            double terrAng = qRadiansToDegrees(_collTerrain->TiltAtX(pos.x()));//+90;
+            double velAng = qRadiansToDegrees(qAtan2((Vel().y*-1),Vel().x));
+            double angDiff = velAng - terrAng;
+            static bool fs = true;
+            if(angDiff < -10 && angDiff > -170)
+            {
+            if(angDiff < -90) angDiff += 180;
+              //  if(qAbs(angDiff) > 3 && qAbs(angDiff-180) > 3 && qAbs(angDiff-360) > 3)
+                    RotateVel(angDiff);
+                if(fs){ qDebug() << angDiff; fs = false; }
+            }
+//RotateVel(90);
         }
     }
     PhysicsObj::Step(dt);
