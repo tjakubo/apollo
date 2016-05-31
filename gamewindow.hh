@@ -13,6 +13,7 @@
 #include <QPixmap>
 #include <QPolygon>
 #include <QPainterPath>
+#include <QRadialGradient>
 
 #define W_HEIGHT 650
 
@@ -97,6 +98,7 @@ class Particle : public PhysicsObj
     double _lifespanSec;
     QElapsedTimer _lifeTimer;
     double _size;
+    double _initSize;
     Terrain *_collTerrain;
 public:
     Particle(pos2d initPos, pos2d initVel, pos2d initGrav, double lifespanSec = 5, double size = 2);
@@ -139,7 +141,7 @@ public:
     //QPoint Pos();
     //void SetPos(QPoint newPos);
     void SetRandPos();
-    void SpawnPartCloud(int partNum, double velMult = 1, double gravMult = 1, QPoint offset = QPoint(0, 0));
+    void SpawnPartCloud(int partNum, double partSize, double velMult = 1, double gravMult = 1, QPoint offset = QPoint(0, 0));
 
     std::vector<double>* ParseData();
     void Reset();

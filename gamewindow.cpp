@@ -69,22 +69,22 @@ void Ship::Draw(QPainter *painter)
     //painter->resetTransform();
 
 
-    static QPixmap shipImage(":/res/my_lander_ok.png");
+    static QPixmap shipImage(":/res/lander_ok.png");
 
     if(_state > 0)
     {
         switch (_state) {
         case 1:
-            shipImage.load(":/res/ship_wrecked.png");
+            shipImage.load(":/res/lander_destroyed.png");
             break;
         case 2:
-            shipImage.load(":/res/ship_lleg_mangled.png");
+            shipImage.load(":/res/lander_damaged_left.png");
             break;
         case 3:
-            shipImage.load(":/res/ship_rleg_mangled.png");
+            shipImage.load(":/res/lander_damaged_right.png");
             break;
         default:
-            shipImage.load(":/res/my_lander_ok.png");
+            shipImage.load(":/res/lander_ok.png");
             _state = 0;
             break;
 
@@ -204,7 +204,7 @@ void Ship::Step(double dt)
             if(Vel().Mag() > _legMaxImpactVel)
             {
                Stop();
-               if(_state == 0) SpawnPartCloud(40, 10, 2);
+               if(_state == 0) SpawnPartCloud(40, 10, 10, 2);
                _state = 3;
             }
             else if((Vel().Mag() > 5) || ((Acc() + Grav()).y > 0))
@@ -224,7 +224,7 @@ void Ship::Step(double dt)
             if(Vel().Mag() > _legMaxImpactVel)
             {
                Stop();
-               if(_state == 0) SpawnPartCloud(40, 10, 2);
+               if(_state == 0) SpawnPartCloud(40, 10, 10, 2);
                _state = 2;
             }
             else if((Vel().Mag() > 5) || ((Acc() + Grav()).y > 0))
@@ -246,8 +246,16 @@ void Ship::Step(double dt)
         if((shipMargin = (shipCenter.y() - _terr->ElevAtX(shipCenter.x())) - _fragileRadius) <= 0)
         {
             Stop();
-            if(_state == 0) SpawnPartCloud(100, 10, 10);
+            if(_state == 0) SpawnPartCloud(100, 20, 10, 10);
             _state = 1;
+        }
+        if(_state == 1)
+        {
+            Particle *newParticle = new Particle(Pos(),
+                                                 //(Acc()*-2) + Acc()*(1/Acc().Mag()) + Vel()*-1,
+                                                 pos2d(rand()%8-4, 0, 0),
+                                                 Grav()*-3, 6, 5);
+            _spawnedParticles.push_back(newParticle);
         }
             //qDebug() << shipMargin;
 
@@ -259,8 +267,10 @@ void Ship::Step(double dt)
         exhPort.rx() = exhPort.x() + (-25 * qSin(exhPortFacing));
         exhPort.ry() = exhPort.y() + (25 * qCos(exhPortFacing));
 
-        for(int i=0; i<4; i++)
-            if(rand()%100 <= (_currThrustPerc*100)-1)
+        if(_currThrustPerc>0)
+        for(int i=0; i<12; i++)
+            //if(rand()%100 <= (_currThrustPerc*100)-1)
+
             {
                 //qDebug() << "SPAWNED";
                 int randAng = rand()%20 - 10;
@@ -276,7 +286,7 @@ void Ship::Step(double dt)
                 Particle *newParticle = new Particle(pos2d(exhPort.x(), exhPort.y(), 0),
                                                      //(Acc()*-2) + Acc()*(1/Acc().Mag()) + Vel()*-1,
                                                      Vel() + (Acc()*-3) + ((Acc().Mag()>1)?(Acc()*(1/Acc().Mag())*-3):pos2d(0,0,0)) + pos2d(rand()%20-10, rand()%20-10, 0),
-                                                     Grav()*3, 3, 1);
+                                                     Grav()*3, 3, 3);
                 newParticle->SetTerrain(_terr);
                 _spawnedParticles.push_back(newParticle);
             }
@@ -326,7 +336,7 @@ void Ship::SetRandPos()
     SetPos(pos2d(x, y, ang));
 }
 
-void Ship::SpawnPartCloud(int partNum, double velMult, double gravMult, QPoint offset)
+void Ship::SpawnPartCloud(int partNum, double partSize, double velMult, double gravMult, QPoint offset)
 {
     // Particle(pos2d initPos, pos2d initVel, pos2d initGrav, double lifespanSec = 5, double size = 2);
     for(int i=0; i<partNum; i++)
@@ -335,7 +345,7 @@ void Ship::SpawnPartCloud(int partNum, double velMult, double gravMult, QPoint o
                     Pos() + pos2d(offset.x(), offset.y(), 0),
                     pos2d((((rand()%20) - 10) * velMult), (((rand()%20) - 10) * velMult), 0),
                     Grav()*gravMult,
-                    10, 3 );
+                    10, partSize);
         _spawnedParticles.push_back(newPart);
     }
 }
@@ -345,6 +355,9 @@ std::vector<double>* Ship::ParseData()
     std::vector<double> *infoVec = new std::vector<double>;
     infoVec->push_back(_currThrustPerc);
     infoVec->push_back(_currTorqPerc);
+    infoVec->push_back(Pos().AngDeg());
+    infoVec->push_back(Vel().Mag());
+    infoVec->push_back(_legMaxImpactVel);
     return infoVec;
 }
 
@@ -475,7 +488,7 @@ void GameWindow::paintEvent(QPaintEvent *event)
     static QPixmap bg(":/res/my_bg");
     painter.drawPixmap(QPoint(0,0), bg);
 
-    static QPixmap hud_bg(":/res/hud_static_opaque");
+    static QPixmap hud_bg(":/res/hud_static");
     painter.drawPixmap(QPoint(0, 0), hud_bg);
 
     static QPixmap torq_meter(":/res/hud_torq_meter");
@@ -493,6 +506,17 @@ void GameWindow::paintEvent(QPaintEvent *event)
         painter.translate(0, -1);
     }
     painter.resetTransform();
+
+    static QPixmap led_red(":/res/led_red"), led_orange(":/res/led_orange"), led_green(":/res/led_green");
+    //2kat 3velmag
+    static QPoint vel_led(974, 191), ang_led(974, 224);
+    if(qAbs((*shipInfo)[2]) > 45) painter.drawPixmap(ang_led, led_red);
+    else if(qAbs((*shipInfo)[2]) > 25) painter.drawPixmap(ang_led, led_orange);
+    else painter.drawPixmap(ang_led, led_green);
+
+    if(qAbs((*shipInfo)[3]) > ((*shipInfo)[4])) painter.drawPixmap(vel_led, led_red);
+    else if(qAbs((*shipInfo)[3]) > ((*shipInfo)[4]*0.66)) painter.drawPixmap(vel_led, led_orange);
+    else painter.drawPixmap(vel_led, led_green);
 
             //873 155
     _terr->Draw(&painter);
@@ -551,6 +575,7 @@ Particle::Particle(pos2d initPos, pos2d initVel, pos2d initGrav, double lifespan
     PhysicsObj(initPos, initVel, initGrav),
     _lifespanSec(lifespanSec),
     _size(size),
+    _initSize(size),
     _collTerrain(NULL)
 {
     if(_size < 2) _size = 2;
@@ -567,9 +592,20 @@ void Particle::Draw(QPainter *painter)
     painter->translate(Pos().Point());
     painter->scale(_size, _size);
     painter->save();
-    QPen part(QColor::fromRgb(255, 255*((double) _lifeTimer.elapsed()/(_lifespanSec*1000)), 0), Qt::SolidPattern);
+    int ltime = _lifeTimer.elapsed();
+    //painter->res
+    QRadialGradient grad(QPoint(0,0), 1, QPoint(0,0));
+    grad.setColorAt(0, QColor::fromRgb(255, 255*((double) ltime/(_lifespanSec*1000)), 0, 255-255*((double) ltime/(_lifespanSec*1000))));
+    grad.setColorAt(1, QColor::fromRgb(255, 255*((double) ltime/(_lifespanSec*1000)), 0, 0));
+    QPen part(QColor::fromRgb(255, 255*((double) ltime/(_lifespanSec*1000)), 0, 0), Qt::SolidPattern);
+    QBrush part_brush(QColor::fromRgb(255, 255*((double) ltime/(_lifespanSec*1000)), 0, 255-255*((double) ltime/(_lifespanSec*1000))), Qt::SolidPattern);
+    painter->setBrush(QBrush(grad));
     painter->setPen(part);
-    painter->drawPoint(0, 0);
+    //painter->drawPoint(0, 0);
+    painter->drawEllipse(QPoint(0,0), 1, 1);
+    //QPolygon poly;
+    //poly << QPoint(rand()%10 - 5, rand()%10-5) << QPoint(rand()%10 - 5, rand()%10-5) << QPoint(rand()%10 - 5, rand()%10-5) << QPoint(rand()%10 - 5, rand()%10-5);
+    //painter->drawPolygon(poly);
     // //painter->drawEllipse(QPoint(0, 0), 1, 1);
     //painter->scale(_size/10, _size/10);
    // painter->drawEllipse(QPoint(0, 0), 1, 1);
@@ -579,9 +615,10 @@ void Particle::Draw(QPainter *painter)
 
 void Particle::Step(double dt)
 {
-    static double initSize = _size;
+    //static double initSize = _size;
     //qDebug() << _lifeTimer.elapsed() << "  " << _lifeTimer.elapsed()/(_lifespanSec*1000);
-    _size = (initSize) * (1.0 -  (double) ((double) _lifeTimer.elapsed()/(_lifespanSec*1000))) + 0.5;
+    //_size = (initSize) * (1.0 -  (double) ((double) _lifeTimer.elapsed()/(_lifespanSec*1000))) + 0.5;
+    _size = (_initSize) * (1 + 5*(double) ((double) _lifeTimer.elapsed()/(_lifespanSec*1000)));
     //qDebug() << _size;
     if(_collTerrain != NULL)
     {
