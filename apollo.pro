@@ -11,30 +11,30 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = apollo
 TEMPLATE = app
+INCLUDEPATH += inc/
 
-
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    hardware.cpp \
-    inputwindow.cpp \
-    receiver.cpp \
-    gamewindow.cpp
+SOURCES += src/main.cpp\
+        src/mainwindow.cpp \
+    src/hardware.cpp \
+    src/inputwindow.cpp \
+    src/receiver.cpp \
+    src/gamewindow.cpp
 
 LIBS += -L/usr/lib/x86_64-linux-gnu -lboost_system
 
 HEADERS  += \
-    hardware.hh \
-    inputwindow.hh \
-    mainwindow.hh \
-    blocking_reader.hh \
-    receiver.hh \
-    gamewindow.hh
+    inc/hardware.hh \
+    inc/inputwindow.hh \
+    inc/mainwindow.hh \
+    inc/blocking_reader.hh \
+    inc/receiver.hh \
+    inc/gamewindow.hh
 
-FORMS    += mainwindow.ui \
-    inputwindow.ui \
-    gamewindow.ui
+FORMS    += ui/mainwindow.ui \
+    ui/inputwindow.ui \
+    ui/gamewindow.ui
 
 DISTFILES +=
 
 RESOURCES += \
-    textures.qrc
+    res/textures.qrc

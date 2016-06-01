@@ -69,22 +69,22 @@ void Ship::Draw(QPainter *painter)
     //painter->resetTransform();
 
 
-    static QPixmap shipImage(":/res/lander_ok.png");
+    static QPixmap shipImage(":/img/lander_ok.png");
 
     if(_state > 0)
     {
         switch (_state) {
         case 1:
-            shipImage.load(":/res/lander_destroyed.png");
+            shipImage.load(":/img/lander_destroyed.png");
             break;
         case 2:
-            shipImage.load(":/res/lander_damaged_left.png");
+            shipImage.load(":/img/lander_damaged_left.png");
             break;
         case 3:
-            shipImage.load(":/res/lander_damaged_right.png");
+            shipImage.load(":/img/lander_damaged_right.png");
             break;
         default:
-            shipImage.load(":/res/lander_ok.png");
+            shipImage.load(":/img/lander_ok.png");
             _state = 0;
             break;
 
@@ -496,20 +496,20 @@ void GameWindow::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(line);
 
-    static QPixmap bg(":/res/my_bg");
+    static QPixmap bg(":/img/my_bg");
     painter.drawPixmap(QPoint(0,0), bg);
 
-    static QPixmap hud_bg(":/res/hud_static");
+    static QPixmap hud_bg(":/img/hud_static");
     painter.drawPixmap(QPoint(0, 0), hud_bg);
 
-    static QPixmap torq_meter(":/res/hud_torq_meter");
+    static QPixmap torq_meter(":/img/hud_torq_meter");
     painter.translate(948, 80);
     //qDebug() << (*shipInfo)[1];
     painter.rotate((*shipInfo)[1]*90);
     painter.drawPixmap(QPoint(-1*torq_meter.width()/2, -1*torq_meter.height()/2), torq_meter);
     painter.resetTransform();
 
-    static QPixmap thrust_meter(":/res/hud_thrust_meter");
+    static QPixmap thrust_meter(":/img/hud_thrust_meter");
     painter.translate(870, 176);
     for(int i=0; i<(*shipInfo)[0]*133; i++)
     {
@@ -518,7 +518,7 @@ void GameWindow::paintEvent(QPaintEvent *event)
     }
     painter.resetTransform();
 
-    static QPixmap led_red(":/res/led_red"), led_orange(":/res/led_orange"), led_green(":/res/led_green");
+    static QPixmap led_red(":/img/led_red"), led_orange(":/img/led_orange"), led_green(":/img/led_green");
     //2kat 3velmag
     static QPoint vel_led(974, 273), ang_led(974, 243);
     if(qAbs((*shipInfo)[2]) > 45) painter.drawPixmap(ang_led, led_red);
@@ -529,7 +529,7 @@ void GameWindow::paintEvent(QPaintEvent *event)
     else if(qAbs((*shipInfo)[3]) > ((*shipInfo)[4]*0.66)) painter.drawPixmap(vel_led, led_orange);
     else painter.drawPixmap(vel_led, led_green);
 
-    static QPixmap fuel_meter(":/res/hud_fuel_meter");
+    static QPixmap fuel_meter(":/img/hud_fuel_meter");
     QPoint zero_fuel(905, 128), fuel_len(81, 0);
     painter.drawPixmap(zero_fuel+(fuel_len*(*shipInfo)[5]), fuel_meter);
 
