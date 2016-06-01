@@ -187,6 +187,7 @@ void Ship::Steer(double newThrustPerc, double newTorqPerc)
 void PhysicsObj::Stop()
 {
     _vel = pos2d(0, 0, 0);
+    _timer.restart();
 }
 
 void Ship::Step(double dt)
@@ -502,15 +503,15 @@ void GameWindow::paintEvent(QPaintEvent *event)
     painter.drawPixmap(QPoint(0, 0), hud_bg);
 
     static QPixmap torq_meter(":/res/hud_torq_meter");
-    painter.translate(950, 50);
+    painter.translate(948, 80);
     //qDebug() << (*shipInfo)[1];
     painter.rotate((*shipInfo)[1]*90);
     painter.drawPixmap(QPoint(-1*torq_meter.width()/2, -1*torq_meter.height()/2), torq_meter);
     painter.resetTransform();
 
     static QPixmap thrust_meter(":/res/hud_thrust_meter");
-    painter.translate(873, 157);
-    for(int i=0; i<(*shipInfo)[0]*144; i++)
+    painter.translate(870, 176);
+    for(int i=0; i<(*shipInfo)[0]*133; i++)
     {
         painter.drawPixmap(QPoint(0, 0), thrust_meter);
         painter.translate(0, -1);
@@ -519,7 +520,7 @@ void GameWindow::paintEvent(QPaintEvent *event)
 
     static QPixmap led_red(":/res/led_red"), led_orange(":/res/led_orange"), led_green(":/res/led_green");
     //2kat 3velmag
-    static QPoint vel_led(974, 191), ang_led(974, 224);
+    static QPoint vel_led(974, 273), ang_led(974, 243);
     if(qAbs((*shipInfo)[2]) > 45) painter.drawPixmap(ang_led, led_red);
     else if(qAbs((*shipInfo)[2]) > 25) painter.drawPixmap(ang_led, led_orange);
     else painter.drawPixmap(ang_led, led_green);
@@ -529,11 +530,11 @@ void GameWindow::paintEvent(QPaintEvent *event)
     else painter.drawPixmap(vel_led, led_green);
 
     static QPixmap fuel_meter(":/res/hud_fuel_meter");
-    QPoint zero_fuel(909, 98), fuel_len(82, 0);
+    QPoint zero_fuel(905, 128), fuel_len(81, 0);
     painter.drawPixmap(zero_fuel+(fuel_len*(*shipInfo)[5]), fuel_meter);
 
-    painter.drawText(vel_led-QPoint(100, 0), "Szybkość lądowania");
-    painter.drawText(ang_led-QPoint(100, 0), "Nachylenie lądowania");
+    //painter.drawText(vel_led-QPoint(100, 0), "Szybkość lądowania");
+    //painter.drawText(ang_led-QPoint(100, 0), "Nachylenie lądowania");
 
 
             //873 155
