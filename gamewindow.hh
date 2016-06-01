@@ -117,6 +117,8 @@ class Ship : public PhysicsObj
     double _fragileRadius;
     bool _leg1coll, _leg2coll;
     int _state;
+    double _maxFuelConsPerSec;
+    double _maxFuelCap, _currFuel;
 
     double _maxThrust;
     double _currThrustPerc;

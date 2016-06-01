@@ -154,6 +154,10 @@ Ship::Ship(Terrain *terr):
     _maxTorq = 1;
     _state = 0;
 
+    _maxFuelCap = 1000;
+    _maxFuelConsPerSec = 5;
+    _currFuel = _maxFuelCap;
+
     _legAngle = 45;
     _legLength = 50;
     _legMaxImpactVel = 50;
@@ -172,6 +176,7 @@ void Ship::Steer(double newThrustPerc, double newTorqPerc)
     _currTorqPerc = newTorqPerc;
     double actThrust = _currThrustPerc*_maxThrust;
     //double actThrust = 0;
+    if(_currFuel == 0) actThrust = 0;
     double actTorque = _currTorqPerc*_maxTorq;
 
 
@@ -186,6 +191,9 @@ void PhysicsObj::Stop()
 
 void Ship::Step(double dt)
 {
+
+    _currFuel -= _maxFuelConsPerSec*_currThrustPerc;
+    if(_currFuel < 0) _currFuel = 0;
     qDebug() << Vel().ang;
     //qDebug() << qRadiansToDegrees(qAtan((Vel().y*-1)/Vel().x));
     //qDebug() << qRadiansToDegrees(qAtan2((Vel().y*-1),Vel().x));
@@ -358,11 +366,13 @@ std::vector<double>* Ship::ParseData()
     infoVec->push_back(Pos().AngDeg());
     infoVec->push_back(Vel().Mag());
     infoVec->push_back(_legMaxImpactVel);
+    infoVec->push_back(_currFuel/_maxFuelCap);
     return infoVec;
 }
 
 void Ship::Reset()
 {
+    _currFuel = _maxFuelCap;
     _leg1coll = _leg2coll = false;
     _state = 10;
     while(_spawnedParticles.size() > 0)
@@ -499,7 +509,7 @@ void GameWindow::paintEvent(QPaintEvent *event)
     painter.resetTransform();
 
     static QPixmap thrust_meter(":/res/hud_thrust_meter");
-    painter.translate(870, 10);
+    painter.translate(873, 157);
     for(int i=0; i<(*shipInfo)[0]*144; i++)
     {
         painter.drawPixmap(QPoint(0, 0), thrust_meter);
@@ -517,6 +527,14 @@ void GameWindow::paintEvent(QPaintEvent *event)
     if(qAbs((*shipInfo)[3]) > ((*shipInfo)[4])) painter.drawPixmap(vel_led, led_red);
     else if(qAbs((*shipInfo)[3]) > ((*shipInfo)[4]*0.66)) painter.drawPixmap(vel_led, led_orange);
     else painter.drawPixmap(vel_led, led_green);
+
+    static QPixmap fuel_meter(":/res/hud_fuel_meter");
+    QPoint zero_fuel(909, 98), fuel_len(82, 0);
+    painter.drawPixmap(zero_fuel+(fuel_len*(*shipInfo)[5]), fuel_meter);
+
+    painter.drawText(vel_led-QPoint(100, 0), "Szybkość lądowania");
+    painter.drawText(ang_led-QPoint(100, 0), "Nachylenie lądowania");
+
 
             //873 155
     _terr->Draw(&painter);
