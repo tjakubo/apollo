@@ -1,0 +1,19 @@
+THRUST METER:
+	LG: 873 / 13
+	LD: 873 / 157
+	
+FUEL METER:
+	LG: 909 / 100
+	PG: 991 / 100
+	
+TORQ METER:
+	C: 950 / 50
+	
+LED 1:
+	LG: 974 / 207
+	
+LED 2:
+	LG: 974 / 240
+	
+LED 3:
+	LG: 974 / 273
