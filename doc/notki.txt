@@ -1,4 +1,1 @@
- -- sposob odbioru asynch
- -- diagram klas
- -- widgety, kanwa?
- -- warning o przypisaniu
+-- format doxy (pola prywatne etc)

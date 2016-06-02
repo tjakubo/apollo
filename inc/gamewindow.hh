@@ -14,6 +14,7 @@
 #include <QPolygon>
 #include <QPainterPath>
 #include <QRadialGradient>
+#include <QMouseEvent>
 
 #define W_HEIGHT 650
 
@@ -357,7 +358,11 @@ public:
      */
     void paintEvent(QPaintEvent *);
 
+    //event na otwarcie okna
     void showEvent(QShowEvent *event);
+
+    // event na klik myszki
+    void mouseMoveEvent(QMouseEvent* event);
 
     //! Funkcja wywołująca krok lądownika
     void StepScene();

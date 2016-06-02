@@ -183,7 +183,8 @@ void Ship::Step(double dt)
 {
     //qDebug() << Tilt() << " : " << Pos().AngDeg();
     //qDebug() << _particleDensity;
-    qDebug() << Vel().AngRad();
+    //qDebug() << Vel().AngRad();
+
     // konsumpcja paliwa
     _currFuel -= _maxFuelConsPerSec*_currThrustPerc;
     if(_currFuel < 0) _currFuel = 0;
@@ -607,6 +608,14 @@ void GameWindow::showEvent(QShowEvent *event)
     on_resetButton_clicked();
     _terr->Generate(0, 1000, 4, 10, 0.15);
     QWidget::showEvent(event);
+}
+
+void GameWindow::mouseMoveEvent(QMouseEvent* event) {
+    int mX = event->pos().x();
+    int mY = event->pos().y();
+    double dist = qSqrt( pow((mX - _lander->Pos().x),2) + pow((mY - _lander->Pos().y),2));
+
+    if(dist < 20) _lander->SetPos(pos2d(mX, mY, _lander->Pos().ang));
 }
 
 void GameWindow::on_resetButton_clicked()
