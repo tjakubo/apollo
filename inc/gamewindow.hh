@@ -288,8 +288,9 @@ public:
      */
     void Draw(QPainter *painter);
 
-    //QPoint Pos();
-    //void SetPos(QPoint newPos);
+    //! Metoda zwracająca nachylenie statku w stopniach w zakresie
+    double Tilt(){ double tilt = Pos().AngDeg(); while(qAbs(tilt) > 180) tilt += 180*((tilt>0)?-1:1); return tilt; }
+
     //! Metoda ustalająca statkowi losową pozycję w granicach które są dobre dla rozpoczęcia gry
     void SetRandPos();
 
@@ -340,6 +341,8 @@ public:
      * Dane dla HUD pobierane są od lądownika w postaci wektora liczb o ustalonej strukturze.
      */
     void paintEvent(QPaintEvent *);
+
+    void showEvent(QShowEvent *event){ _lander->Reset(); _lander->SetRandPos(); QWidget::showEvent(event); }
 
     //! Funkcja wywołująca krok lądownika
     void StepScene();

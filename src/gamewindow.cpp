@@ -3,7 +3,7 @@
 
 void PhysicsObj::Step(double dt)
 {
-    // jak 1 uruchomienie to 1ms
+    // jak 1 uruchomienie to dt=1ms
     double deltaTime = (double) _timer.restart()/1000;
     if(_firstRun){ deltaTime = 0.001; _firstRun = false;}
     if(dt > 0) deltaTime = dt; // podstaw argument jak sie da
@@ -37,7 +37,7 @@ PhysicsObj::PhysicsObj(pos2d initPos, pos2d initVel, pos2d initGrav):
 
 void Terrain::Draw(QPainter *painter)
 {
-    QPolygon terrPoly;
+    QPolygon terrPoly; // wielobok do rysowania terenu
 
     painter->save();
 
@@ -84,9 +84,10 @@ void Ship::Draw(QPainter *painter)
     painter->drawPixmap(QPoint(-1*shipImage.width()/2, -1*shipImage.height()/2), shipImage);
     painter->resetTransform();
 
+    // odswiez czasteczki
     for(unsigned int i=0; i<_spawnedParticles.size(); i++)
     {
-        if(_spawnedParticles[i]->Expired()) // usun
+        if(_spawnedParticles[i]->Expired())
         {
             delete _spawnedParticles[i];
             _spawnedParticles.erase(_spawnedParticles.begin() + i);
@@ -107,6 +108,7 @@ GameWindow::GameWindow(Hardware *HWlink) :
     _lander = new Ship(_terr);
     ui->setupUi(this);
 
+    //nowy seed randa
     QTime time = QTime::currentTime();
     qsrand((uint)time.msec());
 }
@@ -118,11 +120,11 @@ GameWindow::~GameWindow()
 
 void GameWindow::NewMeasurementReceived(meas newMeas)
 {
-    int tilt = (((double) newMeas.y)/64) * 90;
-    if(newMeas.z < 0) tilt = 180 - tilt;
+    int tilt = (((double) newMeas.y)/64) * 90; // WYCHYLENIE NA BOK
+    if(newMeas.z < 0) tilt = 180 - tilt;       // czerwona dioda w swoja strone
 
-    int set = (((double) newMeas.x)/64) * -90;
-    if(newMeas.z < 0) set = 180 - set;
+    int set = (((double) newMeas.x)/64) * -90; // WYCHYLENIE W PRZOD
+    if(newMeas.z < 0) set = 180 - set;         // w przeciwna niz czerwona dioda
     _lander->Steer(((double) set)/100, ((double) tilt)/100);
 }
 
@@ -140,7 +142,7 @@ Ship::Ship(Terrain *terr):
 
     _legAngle = 45;
     _legLength = 50;
-    _legMaxImpactVel = 50;
+    _legMaxImpactVel = 40;
     _fragileRadius = 30;
     _leg1coll = _leg2coll = false;
     SetRandPos();
@@ -155,6 +157,8 @@ void Ship::Steer(double newThrustPerc, double newTorqPerc)
     _currThrustPerc = newThrustPerc;
     _currTorqPerc = newTorqPerc;
     double actThrust = _currThrustPerc*_maxThrust;
+
+    // jesli zero paliwa to zero ale currThrust zostaje na zadanej!
     if(_currFuel == 0) actThrust = 0;
     double actTorque = _currTorqPerc*_maxTorq;
 
@@ -170,6 +174,7 @@ void PhysicsObj::Stop()
 
 void Ship::Step(double dt)
 {
+    qDebug() << Tilt();
 
     _currFuel -= _maxFuelConsPerSec*_currThrustPerc;
     if(_currFuel < 0) _currFuel = 0;
@@ -192,7 +197,7 @@ void Ship::Step(double dt)
             else if((Vel().Mag() > 5) || ((Acc() + Grav()).y > 0))
             {
                 if(!_leg1coll) { Stop(); _leg1coll = true; }
-                if((Pos().AngDeg() < 45) && (Pos().AngDeg() > -45))
+                if((Tilt() < 45) && (Tilt() > -45))
                     SetAcc(pos2d(-5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), -0.3));
                 else
                     SetAcc(pos2d(5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), 0.3));
@@ -210,7 +215,7 @@ void Ship::Step(double dt)
             else if((Vel().Mag() > 5) || ((Acc() + Grav()).y > 0))
             {
                 if(!_leg2coll) { Stop(); _leg2coll = true; }
-                if((Pos().AngDeg() < 45) && (Pos().AngDeg() > -45))
+                if((Tilt() < 45) && (Tilt() > -45))
                 SetAcc(pos2d(5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), 0.3));
                 else
                     SetAcc(pos2d(-5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), -0.3));
@@ -258,7 +263,7 @@ void Ship::Step(double dt)
 void Ship::SetRandPos()
 {
     int x = rand()%400 + 300;
-    int y = rand()%100 + 100;
+    int y = rand()%100 + 400;
     x = Trans(QPoint(x, y)).x();
     y = Trans(QPoint(x, y)).y();
     double ang = qDegreesToRadians((double) (rand()%90 - 45));
@@ -283,7 +288,7 @@ std::vector<double>* Ship::ParseData()
     std::vector<double> *infoVec = new std::vector<double>;
     infoVec->push_back(_currThrustPerc);
     infoVec->push_back(_currTorqPerc);
-    infoVec->push_back(Pos().AngDeg());
+    infoVec->push_back(Tilt());
     infoVec->push_back(Vel().Mag());
     infoVec->push_back(_legMaxImpactVel);
     infoVec->push_back(_currFuel/_maxFuelCap);
