@@ -12,7 +12,7 @@
 #define MEAS_PORT "/dev/ttyS0"
 #define SAMPLE_NUM_MAX 30
 #define INT_1G 64
-#define TIMEOUT_MS 1000
+#define TIMEOUT_MS 50
 
 #define SIM_MEAS_STR "b 20 -15 64 512 e"
 

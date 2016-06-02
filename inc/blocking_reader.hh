@@ -3,22 +3,23 @@
 
 #endif // BLOCKING_READER_HH
 
-//
-// blocking_reader.h - a class that provides basic support for
-// blocking & time-outable single character reads from
-// boost::asio::serial_port.
-//
-// use like this:
-//
-// 	blocking_reader reader(port, 500);
-//
-//	char c;
-//
-//	if (!reader.read_char(c))
-//		return false;
-//
-// Kevin Godden, www.ridgesolutions.ie
-//
+/*!
+  \brief Timeout-able serial prot read by Kevin Godden
+ blocking_reader.h - a class that provides basic support for
+ blocking & time-outable single character reads from
+ boost::asio::serial_port.
+
+ use like this:
+
+    blocking_reader reader(port, 500);
+
+    char c;
+
+    if (!reader.read_char(c))
+        return false;
+
+ Kevin Godden, www.ridgesolutions.ie
+*/
 
 #include <boost/asio/serial_port.hpp>
 #include <boost/bind.hpp>

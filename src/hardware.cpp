@@ -4,11 +4,11 @@
 Hardware::Hardware(QWidget *parent):
     QWidget(parent),
     _sp(_ios, MEAS_PORT),
-    _reader(_sp, 50),
+    _reader(_sp, TIMEOUT_MS),
     _measCal(0, 0, 0, 1024)
 {
     // _ios.run();
-    _sp.set_option(boost::asio::serial_port::baud_rate(9600));
+    _sp.set_option(boost::asio::serial_port::baud_rate(115200));
     _rawDataSent = false;
     _avgSampleNum = 6;
     // _timer.setSingleShot(true);
@@ -26,7 +26,6 @@ void Hardware::SimMeasure()
     meas_struct.p = str.split(" ")[4].toInt();
 
     emit NewMeasurement(Process(meas_struct));
-
     if(_rawDataSent) { emit NewRawData(str); }
 
 }
@@ -82,6 +81,15 @@ void Hardware::Measure()
     meas_struct.y = str.split(" ")[2].toInt();
     meas_struct.z = str.split(" ")[3].toInt();
     meas_struct.p = str.split(" ")[4].toInt();
+    unsigned int checksum = str.split(" ")[5].toInt();
+
+    if(checksum != (meas_struct.x ^ meas_struct.y ^ meas_struct.z ^ meas_struct.p))
+    {
+        static unsigned int  badReadCount = 0;
+        ++badReadCount;
+        qDebug() << "Nieprawidlowa suma kontrolna (" << badReadCount << ")";// << checksum << " " << (meas_struct.x ^ meas_struct.y ^ meas_struct.z ^ meas_struct.p);
+        return;
+    }
 
     emit NewMeasurement(Process(meas_struct));
 
