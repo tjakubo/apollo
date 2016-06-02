@@ -58,7 +58,7 @@ void Hardware::Measure()
     char c; bool fail = false;
     while(!end)
     {
-        if( fail = (!_reader.read_char(c)) ) break; // TUTAJ WARNING
+        if( (fail = (!_reader.read_char(c))) ) break; // TUTAJ WARNING
         if(!begin && c=='b')
             begin = true;
         if(begin) out += c;
@@ -81,7 +81,7 @@ void Hardware::Measure()
     meas_struct.y = str.split(" ")[2].toInt();
     meas_struct.z = str.split(" ")[3].toInt();
     meas_struct.p = str.split(" ")[4].toInt();
-    unsigned int checksum = str.split(" ")[5].toInt();
+    int checksum = str.split(" ")[5].toInt();
 
     if(checksum != (meas_struct.x ^ meas_struct.y ^ meas_struct.z ^ meas_struct.p))
     {

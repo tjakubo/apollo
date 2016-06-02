@@ -5,6 +5,7 @@
 
 /*!
   \brief Timeout-able serial prot read by Kevin Godden
+
  blocking_reader.h - a class that provides basic support for
  blocking & time-outable single character reads from
  boost::asio::serial_port.
