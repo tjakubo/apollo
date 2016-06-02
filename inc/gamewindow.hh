@@ -102,7 +102,7 @@ public:
 
     //! Pobranie referencji do stalego obiektu pozycji
     const pos2d& Pos(){ return _pos; }
-    //! Funnkcja zadająca nową pozycję
+    //! Metoda zadająca nową pozycję
     void SetPos(pos2d newPos){ _pos = newPos; }
     //! Pobranie referencji do stalego obiektu predkosci
     const pos2d& Vel() const { return _vel; }
@@ -111,6 +111,8 @@ public:
     void SetAcc(pos2d newAcc){ _acc = newAcc; }
     //! Pobranie referencji do stalego obiektu grawitacji
     const pos2d& Grav() const {return _gravity; }
+    //! Metoda ustawiajaca nowa wartosc grawitacji
+    void SetGrav(pos2d newGrav) { _gravity = newGrav; }
 
     /*! \brief Metoda zerujaca prędkość obiektu.
      *
@@ -143,15 +145,19 @@ class Terrain
     QVector<QPoint> _verts; ///< Współrzędne wierzchołków terenu, układ z początkiem w lewym dolnym rogu!
 
 public:
-    /*! \brief Konstruktor parametryczny, generuje losowy tern z zadanymi parametrami.
+    //! Konstruktor parametryczny od razu wywołujacy generację terenu.
+    Terrain(int xMin, int xMax, int vertCountMin, int vertCountMax, double dYmax);
+
+    /*! \brief Metoda generujaca losowy teren z zadanymi parametrami.
      *
+     * Jeśli już coś istnieje, jest usuwane (można re-generować teren).
      * \param xMin Od jakiej współrzędnej x ma się rozpoczynać teren
      * \param xMax Do jakiej współrzędnej x ma być teren
      * \param verCountMin Minimalna liczba segmentów terenu
      * \param vertCountMax Maksymalna liczba segmentów terenu
      * \param dYmax Moduł maksymalnego nachylenia terenu (pochodnej prostej)
      */
-    Terrain(int xMin, int xMax, int vertCountMin, int vertCountMax, double dYmax);
+    void Generate(int xMin, int xMax, int vertCountMin, int vertCountMax, double dYmax);
 
     //! Metoda zwracajaca stały wektor z wierzchołkami
     const QVector<QPoint> Vec();
@@ -191,15 +197,19 @@ public:
  */
 class Particle : public PhysicsObj
 {
+public:
+    //! Możliwe typy cząsteczki (do rysowania)
+    enum type { Flame, Spark };
+private:
+    type _partType;           ///< Typ cząsteczki (do rysowania)
     double _lifespanSec;      ///< pożądany czas życia w sekundach
     QElapsedTimer _lifeTimer; ///< timer odmierzający czas życia
     double _size;             ///< aktualna wielkość cząsteczki
     double _initSize;         ///< początkowa wielkość cząsteczki
     Terrain *_collTerrain;    ///< teren z którym cząsteczka wchodzi w interakcje, NULL jeśli ma nie wchodzić
 public:
-
     //! Konstruktor parametryczny
-    Particle(pos2d initPos, pos2d initVel, pos2d initGrav, double lifespanSec = 5, double size = 2);
+    Particle(pos2d initPos, pos2d initVel, pos2d initGrav, type pType, double lifespanSec = 5, double size = 2);
     //! Wirtualny destruktor aby kompilator wiedział że tak ma być
     virtual ~Particle(){}
 
@@ -249,6 +259,8 @@ class Ship : public PhysicsObj
     double _maxFuelConsPerSec;        ///< pobór paliwa przy maksymalnej nastawie silnika
     double _maxFuelCap, _currFuel;    ///< maksymalny i aktualny poziom paliwa
 
+    double _particleDensity;          ///< Współczynnik do skalowania ilosci tworzonych cząsteczek (0 - inf)
+
     double _maxThrust;                ///< maksymalna siła odrzutu silnika
     double _currThrustPerc;           ///< aktualny procent nastawy silnika
 
@@ -289,13 +301,16 @@ public:
     void Draw(QPainter *painter);
 
     //! Metoda zwracająca nachylenie statku w stopniach w zakresie
-    double Tilt(){ double tilt = Pos().AngDeg(); while(qAbs(tilt) > 180) tilt += 180*((tilt>0)?-1:1); return tilt; }
+    double Tilt(){ double tilt = Pos().AngDeg(); while(qAbs(tilt) > 180) tilt += 360*((tilt>0)?-1:1); return tilt; }
 
     //! Metoda ustalająca statkowi losową pozycję w granicach które są dobre dla rozpoczęcia gry
     void SetRandPos();
 
     //! Metoda tworząca chmurę cząsteczek o zadanej ilości, wielkości, prędkości, grawitacji i offsecie
-    void SpawnPartCloud(int partNum, double partSize, double velMult = 1, double gravMult = 1, QPoint offset = QPoint(0, 0));
+    void SpawnPartCloud(int partNum, double partSize, double velMult = 1, double gravMult = 1,
+                        Particle::type pType = Particle::type::Flame, QPoint offset = QPoint(0, 0));
+    //! Metoda zadająca nowy współczynnik ilości tworzonych cząsteczek
+    void SetPartDens(double newPartDens) { _particleDensity = newPartDens; }
 
     //! Metoda zwracająca wektor z informacjami o statku (dla okna do rysowania HUDu)
     std::vector<double>* ParseData();
@@ -342,7 +357,7 @@ public:
      */
     void paintEvent(QPaintEvent *);
 
-    void showEvent(QShowEvent *event){ _lander->Reset(); _lander->SetRandPos(); QWidget::showEvent(event); }
+    void showEvent(QShowEvent *event);
 
     //! Funkcja wywołująca krok lądownika
     void StepScene();
@@ -353,7 +368,11 @@ public slots:
 
 private slots:
     //! Przycisk resetu pozycji i stanu lądownika
-    void on_pushButton_clicked();
+    void on_resetButton_clicked();
+    //! Slider współczynnika ilości cząsteczek
+    void on_partSlider_valueChanged(int value);
+    //! Slider siły grawitacji
+    void on_gravSlider_valueChanged(int value);
 
 private:
     Ui::GameWindow *ui;

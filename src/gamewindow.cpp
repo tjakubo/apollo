@@ -132,7 +132,7 @@ Ship::Ship(Terrain *terr):
     PhysicsObj(pos2d(0, 0, 0), pos2d(0, 0, 0), pos2d(0, 5, 0)),
     _terr(terr)
 {
-    _maxThrust = 60;
+    _maxThrust = 20;
     _maxTorq = 1;
     _state = 0;
 
@@ -142,7 +142,7 @@ Ship::Ship(Terrain *terr):
 
     _legAngle = 45;
     _legLength = 50;
-    _legMaxImpactVel = 40;
+    _legMaxImpactVel = 50;
     _fragileRadius = 30;
     _leg1coll = _leg2coll = false;
     SetRandPos();
@@ -160,7 +160,14 @@ void Ship::Steer(double newThrustPerc, double newTorqPerc)
 
     // jesli zero paliwa to zero ale currThrust zostaje na zadanej!
     if(_currFuel == 0) actThrust = 0;
+
     double actTorque = _currTorqPerc*_maxTorq;
+    // limitowanie sterownia predkosci obrotowej jesli wieksza niz 4 i w tym samym kierunku
+    if((qAbs(Vel().AngRad()) > 4) && ((actTorque*Vel().AngRad()) > 0))
+    {
+        if(qAbs(Vel().AngRad()) > 5) actTorque = 0;
+        else actTorque = actTorque * (5-qAbs(Vel().AngRad()));
+    }
 
 
     SetAcc(pos2d(actThrust * qSin(Pos().AngRad()), -1*actThrust * qCos(Pos().AngRad()), actTorque));
@@ -174,88 +181,122 @@ void PhysicsObj::Stop()
 
 void Ship::Step(double dt)
 {
-    qDebug() << Tilt();
-
+    //qDebug() << Tilt() << " : " << Pos().AngDeg();
+    //qDebug() << _particleDensity;
+    qDebug() << Vel().AngRad();
+    // konsumpcja paliwa
     _currFuel -= _maxFuelConsPerSec*_currThrustPerc;
     if(_currFuel < 0) _currFuel = 0;
+
+    // kolizja nog z terenem
     double ang = Pos().AngRad();
     double legOffset = _legAngle*(2.0*3.1416)/360.0;
     QPoint leg1(_legLength*qCos(ang+legOffset), _legLength*qSin(ang+legOffset)),
-           leg2(_legLength*qCos(ang+3*legOffset), _legLength*qSin(ang+3*legOffset));
+            leg2(_legLength*qCos(ang+3*legOffset), _legLength*qSin(ang+3*legOffset));
     QPoint shipCenter = Trans(Pos().Point());
     leg1 += Pos().Point(); leg2 += Pos().Point();
     leg1 = Trans(leg1); leg2 = Trans(leg2);
-    int leg1margin, leg2margin, shipMargin;
-        if((leg1margin = (leg1.y() - _terr->ElevAtX(leg1.x()))) <= 0)
-        {
-            if(Vel().Mag() > _legMaxImpactVel)
-            {
-               Stop();
-               if(_state == 0) SpawnPartCloud(40, 10, 10, 2);
-               _state = 3;
-            }
-            else if((Vel().Mag() > 5) || ((Acc() + Grav()).y > 0))
-            {
-                if(!_leg1coll) { Stop(); _leg1coll = true; }
-                if((Tilt() < 45) && (Tilt() > -45))
-                    SetAcc(pos2d(-5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), -0.3));
-                else
-                    SetAcc(pos2d(5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), 0.3));
-            }
-            else _leg1coll = false;
-        }
-        if((leg2margin = (leg2.y() - _terr->ElevAtX(leg2.x()))) <= 0)
-        {
-            if(Vel().Mag() > _legMaxImpactVel)
-            {
-               Stop();
-               if(_state == 0) SpawnPartCloud(40, 10, 10, 2);
-               _state = 2;
-            }
-            else if((Vel().Mag() > 5) || ((Acc() + Grav()).y > 0))
-            {
-                if(!_leg2coll) { Stop(); _leg2coll = true; }
-                if((Tilt() < 45) && (Tilt() > -45))
-                SetAcc(pos2d(5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), 0.3));
-                else
-                    SetAcc(pos2d(-5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), -0.3));
+    int leg1margin, leg2margin, shipMargin; // odleglosc nog i statku od terenu
 
-            }
-            else _leg2coll = false;
-        }
-        if(_leg1coll && _leg2coll) Stop();
-        if((shipMargin = (shipCenter.y() - _terr->ElevAtX(shipCenter.x())) - _fragileRadius) <= 0)
+    // jesli pierwsza noga dotyka ziemi
+    if((leg1margin = (leg1.y() - _terr->ElevAtX(leg1.x()))) <= 0)
+    {
+        if(Vel().Mag() > _legMaxImpactVel) // jesli trzaslo za szybko
         {
+            // stop, chmura iskier, zmiana stanu
             Stop();
-            if(_state == 0) SpawnPartCloud(100, 20, 10, 10);
-            _state = 1;
+            if(_state == 0) SpawnPartCloud(40*_particleDensity, 10, 10, 10, Particle::type::Spark);
+            _state = 3;
         }
-        if(_state == 1)
+        else if((Vel().Mag() > 5) || ((Acc() + Grav()).y > 0)) // jesli statek leci szybko lub NIE przyspiesza w gore
         {
-            Particle *newParticle = new Particle(Pos(),
-                                                 pos2d(rand()%8-4, 0, 0),
-                                                 Grav()*-3, 6, 5);
+            if(!_leg1coll) { Stop(); _leg1coll = true; } // zatrzymaj, oznacz kolizje
+
+            if((Tilt() < 45) && (Tilt() > -45))
+                SetAcc(pos2d(-5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), -0.3)); // jesli male wychylenie, stawiaj do pionu
+            else
+                SetAcc(pos2d(5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), 0.3)); // jesli duze, wywracaj
+        }
+        else _leg1coll = false; // jesli statek leci wolno ORAZ przyspiesza w gore - pusc, odznacz kolizje
+    }
+
+    // jesli druga noga dotyka ziemi
+    if((leg2margin = (leg2.y() - _terr->ElevAtX(leg2.x()))) <= 0)
+    {
+        if(Vel().Mag() > _legMaxImpactVel) // jesli trzaslo za szybko
+        {
+            // stop, chmura iskier, zmiana stanu
+            Stop();
+            if(_state == 0) SpawnPartCloud(40*_particleDensity, 10, 10, 10, Particle::type::Spark);
+            _state = 2;
+        }
+        else if((Vel().Mag() > 5) || ((Acc() + Grav()).y > 0)) // jesli statek leci szybko lub NIE przyspiesza w gore
+        {
+            if(!_leg2coll) { Stop(); _leg2coll = true; } // zatrzymaj, oznacz kolizje
+            if((Tilt() < 45) && (Tilt() > -45))
+                SetAcc(pos2d(5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), 0.3)); // jesli male wychylenie, stawiaj do pionu
+            else
+                SetAcc(pos2d(-5*qCos(Pos().AngRad()), 0.2*qSin(Pos().AngRad()), -0.3)); // jesli duze, wywracaj
+
+        }
+        else _leg2coll = false; // jesli statek leci wolno ORAZ przyspiesza w gore - pusc, odznacz kolizje
+    }
+
+    // jesli obie nogi w kontakcie z ziemia, zatrzymaj
+    if(_leg1coll && _leg2coll) Stop();
+
+    // jesli srodek statku w zbyt bliskim kontakcie z podlozem
+    if((shipMargin = (shipCenter.y() - _terr->ElevAtX(shipCenter.x())) - _fragileRadius) <= 0)
+    {
+        // stop, chmura iskier, status = zniszczony
+        Stop();
+        if(_state == 0) SpawnPartCloud(100*_particleDensity, 20, 10, 10, Particle::type::Spark);
+        _state = 1;
+    }
+
+    // jesli lezy zepsuty
+    if(_state == 1)
+    {
+        // tworz czasteczke palacego sie ognia
+        Particle *newParticle = new Particle(Pos(),
+                                             pos2d(rand()%8-4, 0, 0),
+                                             Grav()*-3, Particle::type::Flame, 6, 5);
+        _spawnedParticles.push_back(newParticle);
+
+        // od czasu do czasu tez iskre
+        if(rand()%20 > (18/(_particleDensity)))
+        {
+            Particle *newParticle = new Particle(pos2d(Pos().x + (rand()%30 - 15), Pos().y + (rand()%30 - 15), 0),
+                                                 pos2d(rand()%200 - 100, rand()%100*-1, 0),
+                                                 Grav()*10, Particle::type::Spark, 6, 5);
+            _spawnedParticles.push_back(newParticle);
+        }
+    }
+
+    // CZASTECZKI Z ODRZUTU
+    QPoint exhPort(Pos().Point()); // punkcik z ktorego maja leciec
+    double exhPortFacing(Pos().AngRad());
+    exhPort.rx() = exhPort.x() + (-25 * qSin(exhPortFacing));
+    exhPort.ry() = exhPort.y() + (25 * qCos(exhPortFacing));
+
+    // jesli silnik wlaczony
+    if(_currThrustPerc>0)
+        for(int i=0; i<(12*_particleDensity); i++)
+        {
+            // stworz czasteczke
+            // predkosc: [pred. statku] + stala*[przysp statku] + stala*[stala w kier przyspieszenia + [czesc losowa]
+            Particle *newParticle = new Particle(pos2d(exhPort.x(), exhPort.y(), 0),
+                                                 Vel() + (Acc()*-10) + ((Acc().Mag()>1)?(Acc()*(1/Acc().Mag())*-5):pos2d(0,0,0)) + pos2d(rand()%20-10, rand()%20-10, 0),
+                                                 Grav()*3, Particle::type::Flame, 3, 3);
+            newParticle->SetTerrain(_terr);
             _spawnedParticles.push_back(newParticle);
         }
 
-        QPoint exhPort(Pos().Point());
-        double exhPortFacing(Pos().AngRad());
-        exhPort.rx() = exhPort.x() + (-25 * qSin(exhPortFacing));
-        exhPort.ry() = exhPort.y() + (25 * qCos(exhPortFacing));
+    // wywolaj krok dla swoich czasteczek
+    for(unsigned int i=0; i<_spawnedParticles.size(); i++)
+        _spawnedParticles[i]->Step(dt);
 
-        if(_currThrustPerc>0)
-        for(int i=0; i<12; i++)
-            {
-                Particle *newParticle = new Particle(pos2d(exhPort.x(), exhPort.y(), 0),
-                                                     Vel() + (Acc()*-3) + ((Acc().Mag()>1)?(Acc()*(1/Acc().Mag())*-3):pos2d(0,0,0)) + pos2d(rand()%20-10, rand()%20-10, 0),
-                                                     Grav()*3, 3, 3);
-                newParticle->SetTerrain(_terr);
-                _spawnedParticles.push_back(newParticle);
-            }
-
-            for(unsigned int i=0; i<_spawnedParticles.size(); i++)
-                _spawnedParticles[i]->Step(dt);
-
+    // jesli nie zniszczony, krok
     if(_state == 0)
         PhysicsObj::Step(dt);
 }
@@ -270,14 +311,14 @@ void Ship::SetRandPos()
     SetPos(pos2d(x, y, ang));
 }
 
-void Ship::SpawnPartCloud(int partNum, double partSize, double velMult, double gravMult, QPoint offset)
+void Ship::SpawnPartCloud(int partNum, double partSize, double velMult, double gravMult, Particle::type pType, QPoint offset)
 {
     for(int i=0; i<partNum; i++)
     {
         Particle *newPart = new Particle(
                     Pos() + pos2d(offset.x(), offset.y(), 0),
                     pos2d((((rand()%20) - 10) * velMult), (((rand()%20) - 10) * velMult), 0),
-                    Grav()*gravMult,
+                    Grav()*gravMult, pType,
                     10, partSize);
         _spawnedParticles.push_back(newPart);
     }
@@ -286,21 +327,21 @@ void Ship::SpawnPartCloud(int partNum, double partSize, double velMult, double g
 std::vector<double>* Ship::ParseData()
 {
     std::vector<double> *infoVec = new std::vector<double>;
-    infoVec->push_back(_currThrustPerc);
-    infoVec->push_back(_currTorqPerc);
-    infoVec->push_back(Tilt());
-    infoVec->push_back(Vel().Mag());
-    infoVec->push_back(_legMaxImpactVel);
-    infoVec->push_back(_currFuel/_maxFuelCap);
+    infoVec->push_back(_currThrustPerc);        // [0] : procent silnika
+    infoVec->push_back(_currTorqPerc);          // [1] : procent momentu
+    infoVec->push_back(Tilt());                 // [2] : nachylenie w stopniach
+    infoVec->push_back(Vel().Mag());            // [3] : w.bezwzgl. predkosci
+    infoVec->push_back(_legMaxImpactVel);       // [4] : max predkosc uderzenia nog
+    infoVec->push_back(_currFuel/_maxFuelCap);  // [5] : procent paliwa
     return infoVec;
 }
 
 void Ship::Reset()
 {
-    _currFuel = _maxFuelCap;
-    _leg1coll = _leg2coll = false;
-    _state = 10;
-    while(_spawnedParticles.size() > 0)
+    _currFuel = _maxFuelCap;                // pelne paliwo
+    _leg1coll = _leg2coll = false;          // brak kolizji
+    _state = 10;                            // status : ok
+    while(_spawnedParticles.size() > 0)     // niszcz czasteczki
     {
         delete _spawnedParticles[0];
         _spawnedParticles.erase(_spawnedParticles.begin());
@@ -314,25 +355,36 @@ void GameWindow::StepScene()
 
 Terrain::Terrain(int xMin, int xMax, int vertCountMin, int vertCountMax, double dYmax)
 {
-    int vertCount = (rand()%(vertCountMax - vertCountMin)) + vertCountMin;
+    Generate(xMin, xMax, vertCountMin, vertCountMax, dYmax);
+}
 
+void Terrain::Generate(int xMin, int xMax, int vertCountMin, int vertCountMax, double dYmax)
+{
+    if(!_verts.empty()) _verts.clear();
+
+    int vertCount = (rand()%(vertCountMax - vertCountMin)) + vertCountMin;
     int xCurr = 0;
     int yCurr = rand()%( (int)((xMax - xMin)*dYmax)) - dYmax/2;
     _verts.push_back(QPoint(xCurr, yCurr));
+
     for(int i=0; i<vertCount; i++)
     {
-        int dX = rand()%1000;
+        int dX = rand()%1000; // nowy punkt z zakresu 0-1000 !
         xCurr += dX;
         int yMax = dYmax * dX;
         int yCurr = rand()%(2*yMax) - yMax;
         _verts.push_back(QPoint(xCurr, yCurr));
     }
+
+    // SKALOWANIE DO POZADANEGO ZAKRESU
     double normCoeff = (double) xMax/_verts[_verts.size()-1].x();
     for(int i=0; i<_verts.size(); i++)
     {
         _verts[i].rx() = _verts[i].x()*normCoeff;
         _verts[i].ry() = _verts[i].y()*normCoeff;
     }
+
+    // minimalna wysokosc (moze byc ujemna)
     int min = _verts[0].y();
     for(int i=1; i<_verts.size(); i++)
     {
@@ -340,7 +392,7 @@ Terrain::Terrain(int xMin, int xMax, int vertCountMin, int vertCountMax, double 
     }
     for(int i=0; i<_verts.size(); i++)
     {
-        _verts[i].ry() = _verts[i].y() - (min*1.5);
+        _verts[i].ry() = _verts[i].y() - (min*1.5); // podneisz wszystko o 150% minimum
     }
 }
 
@@ -359,11 +411,11 @@ int Terrain::LowestElev()
 int Terrain::ElevAtX(int xPos)
 {
     if(xPos < 0) xPos = 1;
-    if(xPos > 1000) xPos = 999l;
+    if(xPos > 1000) xPos = 999;
     int i = 1;
     while((_verts[i].x() < xPos) && (i < (_verts.size()-1))) i++;
-    double dY = (_verts[i].y() - _verts[i-1].y())/(double) (_verts[i].x() - _verts[i-1].x());
-    return (xPos - _verts[i-1].x())*dY + _verts[i-1].y();
+    double dY = (_verts[i].y() - _verts[i-1].y())/(double) (_verts[i].x() - _verts[i-1].x()); // nachyelenie odcinka
+    return (xPos - _verts[i-1].x())*dY + _verts[i-1].y(); // y(x) = dx*dy + y(0)
 }
 
 double Terrain::TiltAtX(int xPos)
@@ -394,18 +446,22 @@ void GameWindow::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(line);
 
+    // TLO
     static QPixmap bg(":/img/my_bg");
     painter.drawPixmap(QPoint(0,0), bg);
 
+    // STALA CZESC HUD
     static QPixmap hud_bg(":/img/hud_static");
     painter.drawPixmap(QPoint(0, 0), hud_bg);
 
+    // WSKAZNIK MOMENTU
     static QPixmap torq_meter(":/img/hud_torq_meter");
     painter.translate(948, 80);
     painter.rotate((*shipInfo)[1]*90);
     painter.drawPixmap(QPoint(-1*torq_meter.width()/2, -1*torq_meter.height()/2), torq_meter);
     painter.resetTransform();
 
+    // WSKAZNIK ODRZUTU
     static QPixmap thrust_meter(":/img/hud_thrust_meter");
     painter.translate(870, 176);
     for(int i=0; i<(*shipInfo)[0]*133; i++)
@@ -416,15 +472,19 @@ void GameWindow::paintEvent(QPaintEvent *event)
     painter.resetTransform();
 
     static QPixmap led_red(":/img/led_red"), led_orange(":/img/led_orange"), led_green(":/img/led_green");
+
+    // LEDka NACHYLENIA
     static QPoint vel_led(974, 273), ang_led(974, 243);
     if(qAbs((*shipInfo)[2]) > 45) painter.drawPixmap(ang_led, led_red);
     else if(qAbs((*shipInfo)[2]) > 25) painter.drawPixmap(ang_led, led_orange);
     else painter.drawPixmap(ang_led, led_green);
 
+    // LEDka PREDKOSCI
     if(qAbs((*shipInfo)[3]) > ((*shipInfo)[4])) painter.drawPixmap(vel_led, led_red);
     else if(qAbs((*shipInfo)[3]) > ((*shipInfo)[4]*0.66)) painter.drawPixmap(vel_led, led_orange);
     else painter.drawPixmap(vel_led, led_green);
 
+    // MIERNIK PALIWA
     static QPixmap fuel_meter(":/img/hud_fuel_meter");
     QPoint zero_fuel(905, 128), fuel_len(81, 0);
     painter.drawPixmap(zero_fuel+(fuel_len*(*shipInfo)[5]), fuel_meter);
@@ -439,15 +499,9 @@ void GameWindow::paintEvent(QPaintEvent *event)
 
 const QVector<QPoint> Terrain::Vec(){ return _verts; }
 
-void GameWindow::on_pushButton_clicked()
-{
-    _lander->SetRandPos();
-    _lander->Stop();
-    _lander->Reset();
-}
-
-Particle::Particle(pos2d initPos, pos2d initVel, pos2d initGrav, double lifespanSec, double size):
+Particle::Particle(pos2d initPos, pos2d initVel, pos2d initGrav, type pType, double lifespanSec, double size):
     PhysicsObj(initPos, initVel, initGrav),
+    _partType(pType),
     _lifespanSec(lifespanSec),
     _size(size),
     _initSize(size),
@@ -464,19 +518,48 @@ void Particle::SetTerrain(Terrain *terr)
 
 void Particle::Draw(QPainter *painter)
 {
-    painter->translate(Pos().Point());
-    painter->scale(_size, _size);
     painter->save();
-    int ltime = _lifeTimer.elapsed();
-    //painter->res
-    QRadialGradient grad(QPoint(0,0), 1, QPoint(0,0));
-    grad.setColorAt(0, QColor::fromRgb(255, 255*((double) ltime/(_lifespanSec*1000)), 0, 255-255*((double) ltime/(_lifespanSec*1000))));
-    grad.setColorAt(1, QColor::fromRgb(255, 255*((double) ltime/(_lifespanSec*1000)), 0, 0));
-    QPen part(QColor::fromRgb(255, 255*((double) ltime/(_lifespanSec*1000)), 0, 0), Qt::SolidPattern);
-    QBrush part_brush(QColor::fromRgb(255, 255*((double) ltime/(_lifespanSec*1000)), 0, 255-255*((double) ltime/(_lifespanSec*1000))), Qt::SolidPattern);
-    painter->setBrush(QBrush(grad));
-    painter->setPen(part);
-    painter->drawEllipse(QPoint(0,0), 1, 1);
+    painter->translate(Pos().Point());
+    switch(_partType)
+    {
+    case (type::Flame): // JESLI OGIEN
+    {
+        painter->scale(_size, _size);
+
+        int ltime = _lifeTimer.elapsed();
+        //painter->res
+        QRadialGradient grad(QPoint(0,0), 1, QPoint(0,0));
+
+        // gradient w srodku
+        // czerw->zolty od czasu, 0-100% przezroczystowsci od czasu
+        grad.setColorAt(0, QColor::fromRgb(255, 255*((double) ltime/(_lifespanSec*1000)), 0, 255-255*((double) ltime/(_lifespanSec*1000))));
+        // gradient na brzegu
+        // kolor czerw->zolty od czasu, 100% przezroczysty
+        grad.setColorAt(1, QColor::fromRgb(255, 255*((double) ltime/(_lifespanSec*1000)), 0, 0));
+        // pen, przezroczysty, bez tego dziwne rzeczy sie dzieja
+        QPen partF(QColor::fromRgb(255, 255*((double) ltime/(_lifespanSec*1000)), 0, 0), Qt::SolidPattern);
+        painter->setBrush(QBrush(grad));
+        painter->setPen(partF);
+        painter->drawEllipse(QPoint(0,0), 1, 1);
+        break;
+    }
+    case (type::Spark): // JESLI ISKRA
+    {
+        QPen partS(Qt::yellow);
+        painter->setPen(partS);
+        pos2d pVel(Vel());
+        if(pVel.Mag() > 5)
+        {
+            //pVel.x = 5*(pVel.x / (pVel.Mag()));
+            //pVel.y = 5*(pVel.y / (pVel.Mag()));
+            pVel = pVel*(1/pVel.Mag())*5;
+        }
+        painter->drawLine(QPoint(0, 0), pVel.Point());
+        break;
+    }
+    }
+
+
     painter->restore();
     painter->resetTransform();
 }
@@ -493,10 +576,13 @@ void Particle::Step(double dt)
             double velAng = qRadiansToDegrees(qAtan2((Vel().y*-1),Vel().x));
             double angDiff = velAng - terrAng;
             static bool fs = true;
-            if(angDiff < -10 && angDiff > -170)
+            if(angDiff < -5 && angDiff > -185l)
             {
-            if(angDiff < -90) angDiff += 180;
-                    RotateVel(angDiff);
+                if(angDiff < -110) angDiff +=180;
+                else if((angDiff < -90) && (rand()%10 > 3)) angDiff +=180;
+                else if((angDiff < -70) && (rand()%10 < 3)) angDiff +=180;
+                //if(angDiff < -90) angDiff += 180;
+                RotateVel(angDiff);
                 if(fs){fs = false; }
             }
         }
@@ -514,4 +600,35 @@ bool Particle::Expired()
 pos2d operator+(const pos2d& p1, const pos2d& p2)
 {
     return pos2d(p1.x+p2.x, p1.y+p2.y, p1.ang+p2.ang);
+}
+
+void GameWindow::showEvent(QShowEvent *event)
+{
+    on_resetButton_clicked();
+    _terr->Generate(0, 1000, 4, 10, 0.15);
+    QWidget::showEvent(event);
+}
+
+void GameWindow::on_resetButton_clicked()
+{
+    _lander->SetRandPos();
+    _lander->Stop();
+    _lander->Reset();
+    _lander->SetPartDens(1);
+    ui->partSlider->setSliderPosition(200);
+    ui->gravSlider->setSliderPosition(200);
+
+}
+
+void GameWindow::on_partSlider_valueChanged(int value)
+{
+    _lander->SetPartDens(((double) value)/200);
+}
+
+void GameWindow::on_gravSlider_valueChanged(int value)
+{
+    int adjValue = value;
+    if(value > 500) adjValue += (value-500);
+    if(value > 800) adjValue += (value-800);
+    _lander->SetGrav(pos2d(0, 1*( ((double) value)/200), 0));
 }
