@@ -45,13 +45,19 @@ MainWindow::~MainWindow()
     delete _InputWindow;
 }
 
-void MainWindow::on_Button_clicked()
+void MainWindow::on_inputWindowButton_clicked()
 {
-    _InputWindow->show();
+    if(_InputWindow->isHidden())
+            _InputWindow->show();
+    else
+        _InputWindow->hide();
 }
 
-void MainWindow::on_pushButton_clicked()
+void MainWindow::on_gameWindowButton_clicked()
 {
-    _GameWindow->show();
+    if(_GameWindow->isHidden())
+            _GameWindow->show();
+    else
+        _GameWindow->hide();
 }
 

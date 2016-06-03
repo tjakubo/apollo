@@ -22,8 +22,8 @@
 #include <QDebug>
 #include <QTimer>
 
-#define VIEW_FREQ 60 // Odswiezanie okienek [Hz]
-#define MEAS_FREQ 30 // Odswiezanie pomiaru [Hz]
+#define VIEW_FREQ 60 ///< Częstotliwość odrysowywania okienek [Hz]
+#define MEAS_FREQ 30 ///< Częstotliwość odpytywania sprzętu o pomiar [Hz]
 
 #define SIM_MEAS false
 
@@ -44,9 +44,9 @@ public:
     ~MainWindow();
     
 private slots:
-    void on_Button_clicked();
+    void on_inputWindowButton_clicked();
 
-    void on_pushButton_clicked();
+    void on_gameWindowButton_clicked();
 
 private:
     Ui::MainWindow *ui;

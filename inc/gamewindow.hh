@@ -1,6 +1,8 @@
 #ifndef GAMEWINDOW_HH
 #define GAMEWINDOW_HH
 
+// KDENLIVE
+
 #include <QWidget>
 #include <QVector>
 #include <QPoint>

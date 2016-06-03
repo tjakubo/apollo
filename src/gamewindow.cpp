@@ -281,8 +281,8 @@ void Ship::Step(double dt)
     exhPort.ry() = exhPort.y() + (25 * qCos(exhPortFacing));
 
     // jesli silnik wlaczony
-    if(_currThrustPerc>0)
-        for(int i=0; i<(12*_particleDensity); i++)
+    if(_currThrustPerc>0 && _currFuel>0)
+        for(int i=0; i<(16*_particleDensity*_currThrustPerc); i++)
         {
             // stworz czasteczke
             // predkosc: [pred. statku] + stala*[przysp statku] + stala*[stala w kier przyspieszenia + [czesc losowa]
