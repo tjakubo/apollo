@@ -4,7 +4,7 @@
 #endif // BLOCKING_READER_HH
 
 /*!
-  \brief Timeout-able serial prot read by Kevin Godden
+  \brief Timeout-able serial port read by Kevin Godden
 
  blocking_reader.h - a class that provides basic support for
  blocking & time-outable single character reads from

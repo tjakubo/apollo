@@ -54,8 +54,7 @@ public:
 /*!
  * \brief Klasa cząsteczki rozchodzącej sie jak pył/dym i opcjonalnie kolidującej z terenem.
  *
- * Na cząsteczkę oddziałuje grawitacja, rozszerza się ona wraz z czasem życie jednocześnie stając się
- * coraz bardziej przezroczysta.
+ * Na cząsteczkę oddziałuje grawitacja, jej rozmiar i wygląd zależy od czasu życia oraz typu.
  * Nie posiada własnej funkcji destrukcji po czasie życia, jedynie może informować że czas ten minął.
  */
 class Particle : public PhysicsObj

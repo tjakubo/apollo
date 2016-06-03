@@ -12,7 +12,7 @@ Terrain::Terrain(int xMin, int xMax, int vertCountMin, int vertCountMax, double 
 * Jeśli już coś istnieje, jest usuwane (można re-generować teren).
 * \param xMin Od jakiej współrzędnej x ma się rozpoczynać teren
 * \param xMax Do jakiej współrzędnej x ma być teren
-* \param verCountMin Minimalna liczba segmentów terenu
+* \param vertCountMin Minimalna liczba segmentów terenu
 * \param vertCountMax Maksymalna liczba segmentów terenu
 * \param dYmax Moduł maksymalnego nachylenia terenu (pochodnej prostej)
 */
