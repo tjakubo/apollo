@@ -1,14 +1,14 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef MAINWINDOW_HH
+#define MAINWINDOW_HH
 
-#ifndef HARDWARE_H
+#ifndef HARDWARE_HH
 #include "hardware.hh"
-#define HARDWARE_H
+#define HARDWARE_HH
 #endif
 
-#ifndef INPUTWINDOW_H
+#ifndef INPUTWINDOW_HH
 #include "inputwindow.hh"
-#define INPUTWINDOW_H
+#define INPUTWINDOW_HH
 #endif
 
 #ifndef GAMEWINDOW_HH
@@ -31,21 +31,33 @@ namespace Ui {
 class MainWindow;
 }
 
-// KLASA ZARZADZAJACA GLOWNYM OKNEM
+/*! \brief Klasa zarządzająca oknem głównym i pokazywaniem/chowaniem reszty
+ *
+ * Tutaj stworzone zostają timery cykliczne które wywołują update okienek oraz czytanie nowego pomiaru z konfigurowalną częstotliwością.
+ * Klasa ta tworzy również obiekt klasy sprzętu który jest później przekazywany innnym okienkom
+ * jako m.in. źródło pomiarów.
+ * W konstruktorze łączone są również wszystkie sygnały w programie.
+ */
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    Hardware *_HWlink;         // (tworzona tutaj) klasa sprzetu
-    InputWindow *_InputWindow; // (tworzona tutaj) klasa okna danych
-    GameWindow *_GameWindow;   // (towrzona tutaj( klasa okna gry
+    Hardware *_HWlink;         ///< (tworzony tutaj) Obiekt reprezentujący sprzęt
+    InputWindow *_InputWindow; ///< (tworzony tutaj) Obiekt reprezentujący okno kalibracji
+    GameWindow *_GameWindow;   ///< (towrzony tutaj) Obiekt reprezentujący okno gry
+
+    QTimer *_measTimer;     ///< Timer do cyklicznego wywoływania funkcji pomiaru
+    QTimer *_updateTimer;   ///< Timer do cyklicznego wywoływania update okien
     
 public:
+    //! Konstruktor
     explicit MainWindow(QWidget *parent = 0);
+    //! Destruktor
     ~MainWindow();
     
 private slots:
+    //! Klik ukryj/pokaż okno wizualizacji i kalibracji sterowania
     void on_inputWindowButton_clicked();
-
+    //! Klik ukryj/pokaż okno gry
     void on_gameWindowButton_clicked();
 
 private:

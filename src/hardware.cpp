@@ -1,24 +1,28 @@
 #include "hardware.hh"
 
-
+/*!
+ * Otwiera port MEAS_PORT, ustawia timeout odczytu TIMEOUT_MS,
+ * baudrate 115200, domyślne dane kalibracji.
+ */
 Hardware::Hardware(QWidget *parent):
     QWidget(parent),
     _sp(_ios, MEAS_PORT),
     _reader(_sp, TIMEOUT_MS),
     _measCal(0, 0, 0, 1024)
 {
-    // _ios.run();
     _sp.set_option(boost::asio::serial_port::baud_rate(115200));
     _rawDataSent = false;
     _avgSampleNum = 6;
-    // _timer.setSingleShot(true);
-    //connect(&_timer, SIGNAL(timeout()), this, SLOT(RePoll()));
 }
 
+/*!
+ * "Pobierany" pomiar pochodzi ze stałej dosłownej SIM_MEAS_STR.
+ * Trzeba zadbać żeby dane w stałej były w dobrym formacie, ale nie trzeba
+ * liczyć i wstawiać do nich sumy kontrolnej.
+ */
 void Hardware::SimMeasure()
 {
     meas meas_struct;
-    //QString str = (const char*) meas_raw;
     QString str = SIM_MEAS_STR;
     meas_struct.x = str.split(" ")[1].toInt();
     meas_struct.y = str.split(" ")[2].toInt();
@@ -30,43 +34,47 @@ void Hardware::SimMeasure()
 
 }
 
+/*!
+ * Wysyła do sprzętu poprzez port znak 'm' co oznacza żądanie nowego pomiaru.
+ * Potem odbiera dane (znaki) dopóki nie przypasuje ich do formatki pomiaru lub
+ * czas pojedynczego odczytu nie zajmie dłużej niż TIMEOUT_MS.
+ * Po dobrym odczycie sprawdza sumę kontrolną i jeśli wszystko jest OK, emituje sygnały
+ * z PRZETWORZONYM nowym pomiarem (metodą Process() ).
+ *
+ * Format danych odczytu:
+ *
+ * b [akcel_x] [akcel_y] [akcel_z] [nap_pot] [suma_kont] e
+ *
+ * akcel_x/y/z : przyspieszenie w osi na 8 bitach (-128 : 128)
+ * nap_pot : napiecie na potencjometrze w 10 bitach (0 : 1023
+ * suma_kont : suma kontrolna, XOR po każdej danej pomiarowej w kolejności z formatu
+ *
+ * Np. "b -17 -40 51 401 405 e"
+ */
 void Hardware::Measure()
 {
-    //char tmp[16];
-    //char meas_raw[32];
     bool begin, end;
-    //int iter;
-    //_timer.start(TIMEOUT_MS);
+
+    // wyslij 'm' do sprzetu - zadanie pomiaru
     std::string message = "m";
     _sp.write_some(boost::asio::buffer(message));
+
     begin = end = false;
-    //iter = 0;
-    /*do
-    {
-        int read = _sp.read_some(boost::asio::buffer(tmp));
-        for(int i=0; (i<read) && !end; i++)
-        {
-            if(tmp[i]=='b'){ begin = true; iter = 0; }
-            if(begin) meas_raw[iter] = tmp[i];
-            if((tmp[i] == 'e') && begin){ end = true; meas_raw[iter + 1] = '\0'; }
-            iter++;
-        }
-
-    } while(!end && _timer.isActive());*/
-
     std::string out;
     char c; bool fail = false;
+
+    // dopoki nie zapali sie flaga zakonczenia odczytu
     while(!end)
     {
-        if( (fail = (!_reader.read_char(c))) ) break; // TUTAJ WARNING
+        if( (fail = (!_reader.read_char(c))) ) break; // jesli timeout (fail = true) to koniec
         if(!begin && c=='b')
             begin = true;
-        if(begin) out += c;
+        if(begin) out += c; // dodawaj pobrany znak az do znaku konca pomiaru
         if(begin && c=='e')
             end = true;
     }
 
-    if(fail)
+    if(fail) // jesli skonczylo sie timeoutem, wywal blad i zakoncz
     {
         static unsigned int timeoutCount = 0;
         ++timeoutCount;
@@ -74,8 +82,8 @@ void Hardware::Measure()
         return;
     }
 
+    // jesli OK, rozbij string pomiaru na dane
     meas meas_struct;
-    //QString str = (const char*) meas_raw;
     QString str = out.c_str();
     meas_struct.x = str.split(" ")[1].toInt();
     meas_struct.y = str.split(" ")[2].toInt();
@@ -83,33 +91,46 @@ void Hardware::Measure()
     meas_struct.p = str.split(" ")[4].toInt();
     int checksum = str.split(" ")[5].toInt();
 
+    // jesli zla suma kontrolna, wywal blad i zakoncz
     if(checksum != (meas_struct.x ^ meas_struct.y ^ meas_struct.z ^ meas_struct.p))
     {
         static unsigned int  badReadCount = 0;
         ++badReadCount;
-        qDebug() << "Nieprawidlowa suma kontrolna (" << badReadCount << ")";// << checksum << " " << (meas_struct.x ^ meas_struct.y ^ meas_struct.z ^ meas_struct.p);
+        qDebug() << "Nieprawidlowa suma kontrolna (" << badReadCount << ")";
         return;
     }
 
+    // sygnaly zakonczenia pomiaru
     emit NewMeasurement(Process(meas_struct));
-
     if(_rawDataSent) { emit NewRawData(str); }
 }
 
+/*!
+ * Robi:
+ *
+ * - uśrednianie wokół zadanej ilości ostatnich pomiarów (dla których było to wywyołane)
+ *
+ * - nakładanie zadanego offsetu na pomiar przyspieszen
+ *
+ * - zadane ograniczenie pomiaru potencjometru
+ */
 meas Hardware::Process(meas measurement)
 {
     if(_avgSampleNum > 1)
     {
+        // dopasuj wielkosc bufora probek, usuwaj/dodawaj az bedzie zadana
         static std::vector<meas> measHist;
         while((unsigned) _avgSampleNum < measHist.size()) measHist.erase(measHist.begin());
         while((unsigned) _avgSampleNum > measHist.size()) measHist.push_back(measurement);
 
+        // zsumuj probki, podziel
         measHist.erase(measHist.begin());
         measHist.push_back(measurement);
         for(unsigned int i=0; i<(measHist.size()-1); i++) measurement = measurement + measHist[i];
         measurement = measurement/((int) measHist.size());
     }
 
+    // naloz offset i max, wyslij
     measurement.OffsetXYZ(_measCal);
     if(measurement.p > _measCal.p) measurement.p = _measCal.p;
     return measurement;

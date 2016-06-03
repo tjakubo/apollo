@@ -1,5 +1,5 @@
-#ifndef HARDWARE_H
-#define HARDWARE_H
+#ifndef HARDWARE_HH
+#define HARDWARE_HH
 
 #include <QWidget>
 #include <QString>
@@ -7,14 +7,18 @@
 #include <QTimer>
 #include <boost/asio.hpp>
 #include <thread>
+
+#ifndef BLOCKING_READER_HH
 #include "blocking_reader.hh"
+#define BLOCKING_READER_HH
+#endif
 
-#define MEAS_PORT "/dev/ttyS0"
-#define SAMPLE_NUM_MAX 30
-#define INT_1G 64
-#define TIMEOUT_MS 50
+#define MEAS_PORT "/dev/ttyS0" ///< Port jakim się komunikujemy ze sprzętem
+#define SAMPLE_NUM_MAX 30      ///< Maskymalna liczba próbek w uśrednianiu pomiaru
+#define INT_1G 64              ///< Wartość pomiaru przyspieszenia równa 1g
+#define TIMEOUT_MS 50          ///< Ile milisekund mamy czekać na nowy znak z pomiaru
 
-#define SIM_MEAS_STR "b 20 -15 64 512 e"
+#define SIM_MEAS_STR "b 20 -15 64 512 1 e" ///< "Pomiar" przy symulacji odbioru pomiaru
 
 //! Struktura przechowująca pojedynczy pomiar
 struct meas
@@ -59,7 +63,7 @@ class Hardware: public QWidget{
     meas _measCal;       ///< Wartość kalibracji pomiaru (offset, max 4. dana)
     int _avgSampleNum;   ///< Ilość ostatnich pomiarów do uśrednienia wraz z nowym
 
-    //! Metoda przetwarzające pomiar - uśrednianie, offset z danych o kalibracji
+    //! Metoda przetwarzająca pomiar z argumentu
     meas Process(meas measurement);
 
 public:
@@ -75,7 +79,7 @@ public:
 
 public slots:
     void Measure();     ///< Metoda rozpoczynająca pobieranie nowego pomiaru
-    void SimMeasure();  ///< Metoda symulująca otrzymanie nowego pomiaru (bierze ze stałej dosłownej SIM_MEAS_STR)
+    void SimMeasure();  ///< Metoda symulująca otrzymanie nowego pomiaru
 
 signals:
     void NewMeasurement(meas measurement);                    ///< Sygnał - otrzymno nowy pomiar

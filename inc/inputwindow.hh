@@ -1,18 +1,18 @@
-#ifndef INPUTWINDOW_H
-#define INPUTWINDOW_H
+#ifndef INPUTWINDOW_HH
+#define INPUTWINDOW_HH
 
 #include <QWidget>
 #include <QString>
 #include <QPainter>
 
-#ifndef HARDWARE_H
+#ifndef HARDWARE_HH
 #include "hardware.hh"
-#define HARDWARE_H
+#define HARDWARE_HH
 #endif
 
-#ifndef RECEIVER_H
+#ifndef RECEIVER_HH
 #include "receiver.hh"
-#define RECEIVER_H
+#define RECEIVER_HH
 #endif
 
 namespace Ui {

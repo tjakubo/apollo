@@ -18,7 +18,9 @@ SOURCES += src/main.cpp\
     src/hardware.cpp \
     src/inputwindow.cpp \
     src/receiver.cpp \
-    src/gamewindow.cpp
+    src/gamewindow.cpp \
+    src/physics.cpp \
+    src/gameobjects.cpp
 
 LIBS += -L/usr/lib/x86_64-linux-gnu -lboost_system
 
@@ -28,7 +30,9 @@ HEADERS  += \
     inc/mainwindow.hh \
     inc/blocking_reader.hh \
     inc/receiver.hh \
-    inc/gamewindow.hh
+    inc/gamewindow.hh \
+    inc/physics.hh \
+    inc/gameobjects.hh
 
 FORMS    += ui/mainwindow.ui \
     ui/inputwindow.ui \

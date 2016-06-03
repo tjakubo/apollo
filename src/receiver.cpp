@@ -3,9 +3,14 @@
 Receiver::Receiver(Hardware *sourceHW, QWidget *parent) :
     QWidget(parent)
 {
-    qDebug() << connect(sourceHW, SIGNAL(NewMeasurement(meas)), this, SLOT(NewMeasurementReceived(meas)));
-    qDebug() << connect(sourceHW, SIGNAL(NewCalibrationData(meas,int)), this, SLOT(NewCalibrationDataReceived(meas,int)));
-    qDebug() << connect(sourceHW, SIGNAL(NewRawData(QString)), this, SLOT(NewRawDataReceived(QString)));
+    bool connectOK = true;
+
+    connectOK = connectOK && connect(sourceHW, SIGNAL(NewMeasurement(meas)), this, SLOT(NewMeasurementReceived(meas)));
+    connectOK = connectOK && connect(sourceHW, SIGNAL(NewCalibrationData(meas,int)), this, SLOT(NewCalibrationDataReceived(meas,int)));
+    connectOK = connectOK && connect(sourceHW, SIGNAL(NewRawData(QString)), this, SLOT(NewRawDataReceived(QString)));
+
+    if(!connectOK)
+        qDebug() << "Błąd podczas łączenia slotów odbioru danych ze sprzętu";
 }
 
 void Receiver::NewCalibrationDataReceived(meas calData, int sampleNum)
