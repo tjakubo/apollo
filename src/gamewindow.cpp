@@ -110,6 +110,7 @@ void GameWindow::showEvent(QShowEvent *event)
 {
     on_resetButton_clicked();
     _terr->Generate(0, 1000, 4, 10, 0.15);
+    ui->helpWindow->hide();
     QWidget::showEvent(event);
 }
 
@@ -176,7 +177,17 @@ void GameWindow::on_gravSlider_valueChanged(int value)
     _lander->SetGrav(pos2d(0, 1*( ((double) value)/200), 0));
 }
 
+void GameWindow::on_helpButton_clicked()
+{
+    if(ui->helpWindow->isHidden())
+        ui->helpWindow->show();
+    else
+        ui->helpWindow->hide();
+}
+
 pos2d operator+(const pos2d& p1, const pos2d& p2)
 {
     return pos2d(p1.x+p2.x, p1.y+p2.y, p1.ang+p2.ang);
 }
+
+

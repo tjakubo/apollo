@@ -78,6 +78,8 @@ private slots:
     //! Slider siły grawitacji
     void on_gravSlider_valueChanged(int value);
 
+    void on_helpButton_clicked();
+
 private:
     Ui::GameWindow *ui;
 };

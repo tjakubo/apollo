@@ -1,7 +1,7 @@
 #ifndef GAMEOBJECTS_HH
 #define GAMEOBJECTS_HH
 
-#define W_HEIGHT 650
+#define W_HEIGHT 650 ///< Stała - wysokość okna gry
 
 #ifndef PHYSICS_HH
 #include "physics.hh"
@@ -14,7 +14,7 @@
 #include <QElapsedTimer>
 #include <QDebug>
 #include <QPixmap>
-#include <QRadialGradient
+#include <QRadialGradient>
 
 
 /*! \brief Klasa terenu definiowanego jako krzywa łamana.

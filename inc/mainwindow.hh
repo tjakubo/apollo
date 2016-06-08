@@ -1,6 +1,17 @@
 #ifndef MAINWINDOW_HH
 #define MAINWINDOW_HH
 
+/*! \mainpage Wizualizacja lądowania na księżycu - dokumentacja
+ *
+ * Aplikacja ma formę gry w której sterowanie realizowane jest poprzez obrót podłączonego akcelerometru.
+ * Dodatkowo istnieje możliwość wizualizacji i kalibracji wejść oraz dołączenia potencjometru jako sterowania.
+ *
+ * Projekt realizowany w ramach kursu "Wizualizacja Danych Sensorycznych"
+ *
+ * Tobiasz Jakubowski
+ * WDS 2016
+ */
+
 #ifndef HARDWARE_HH
 #include "hardware.hh"
 #define HARDWARE_HH
