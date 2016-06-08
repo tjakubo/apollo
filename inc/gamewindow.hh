@@ -77,7 +77,7 @@ private slots:
     void on_partSlider_valueChanged(int value);
     //! Slider siły grawitacji
     void on_gravSlider_valueChanged(int value);
-
+    //! Przycik pokazywania/chowania okna pomocy
     void on_helpButton_clicked();
 
 private:

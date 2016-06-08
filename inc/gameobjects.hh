@@ -87,7 +87,7 @@ public:
     //! Metoda rysujaca czasteczke jako iskierke
     void DrawAsSpark(QPainter *painter);
 
-    //! Metoda rysujaca czasteczke jako chmurke pyłu
+    //! Metoda rysujaca czasteczke jako chmurkę pyłu
     void DrawAsDust(QPainter *painter);
 
     //! Metoda wykonująca "krok" cząsteczki (wielkość, kolizje)

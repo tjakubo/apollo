@@ -5,6 +5,7 @@
  *
  * Aplikacja ma formę gry w której sterowanie realizowane jest poprzez obrót podłączonego akcelerometru.
  * Dodatkowo istnieje możliwość wizualizacji i kalibracji wejść oraz dołączenia potencjometru jako sterowania.
+ * Przycisk "Pomoc" w oknie gry pokazuje opis interfejsu.
  *
  * Projekt realizowany w ramach kursu "Wizualizacja Danych Sensorycznych"
  *

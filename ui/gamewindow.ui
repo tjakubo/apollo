@@ -28,7 +28,7 @@
   <widget class="QPushButton" name="resetButton">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>23</x>
      <y>10</y>
      <width>101</width>
      <height>31</height>
@@ -109,6 +109,12 @@
      <height>450</height>
     </size>
    </property>
+   <property name="frameShape">
+    <enum>QFrame::WinPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Plain</enum>
+   </property>
    <property name="html">
     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -139,8 +145,8 @@ p, li { white-space: pre-wrap; }
   <widget class="QPushButton" name="helpButton">
    <property name="geometry">
     <rect>
-     <x>35</x>
-     <y>160</y>
+     <x>39</x>
+     <y>157</y>
      <width>70</width>
      <height>25</height>
     </rect>
