@@ -19,9 +19,10 @@
 
 /*! \brief Klasa terenu definiowanego jako krzywa łamana.
  *
- * Pozwala na zamknięcie całej obsługi interakcji z terenem w kilku Metodach:
+ * Pozwala na zamknięcie całej obsługi interakcji z terenem w kilku metodach: <br>
  * Generuj losowy teren, generuj ponownie, wysokość nad współrzędną, nachylenie nad współrzędną.
- * Teren nie ma nic wspólnego z fizyką obiektów i domyślnie w ogóle nie wchodzi z nią w interakcje.
+ *
+ * Teren nie ma nic wspólnego z fizyką obiektów i domyślnie w ogóle nie wchodzi z nią w interakcje. <br>
  */
 class Terrain
 {
@@ -43,7 +44,7 @@ public:
     //! Metoda zwracająca wysokość terenu nad daną współrzędną x.
     int ElevAtX(int xPos);
 
-    //! Metoda zwracająca nachylenie terenu nad argumentem.
+    //! Metoda zwracająca nachylenie terenu nad daną współrzędną x.
     double TiltAtX(int xPos);
 
     //! Metoda rysująca teren podanym painterem.
@@ -54,7 +55,7 @@ public:
 /*!
  * \brief Klasa cząsteczki rozchodzącej sie jak pył/dym i opcjonalnie kolidującej z terenem.
  *
- * Na cząsteczkę oddziałuje grawitacja, jej rozmiar i wygląd zależy od czasu życia oraz typu.
+ * Na cząsteczkę oddziałuje grawitacja, jej rozmiar i wygląd zależy od czasu życia oraz typu. <br>
  * Nie posiada własnej funkcji destrukcji po czasie życia, jedynie może informować że czas ten minął.
  */
 class Particle : public PhysicsObj
@@ -64,11 +65,11 @@ public:
     enum type { Flame, Spark, Dust };
 private:
     type _partType;           ///< Typ cząsteczki (do rysowania)
-    double _lifespanSec;      ///< pożądany czas życia w sekundach
-    QElapsedTimer _lifeTimer; ///< timer odmierzający czas życia
-    double _size;             ///< aktualna wielkość cząsteczki
-    double _initSize;         ///< początkowa wielkość cząsteczki
-    Terrain *_collTerrain;    ///< teren z którym cząsteczka wchodzi w interakcje, NULL jeśli ma nie wchodzić
+    double _lifespanSec;      ///< Pożądany czas życia w sekundach
+    QElapsedTimer _lifeTimer; ///< Timer odmierzający czas życia
+    double _size;             ///< Aktualna wielkość cząsteczki
+    double _initSize;         ///< Początkowa wielkość cząsteczki
+    Terrain *_collTerrain;    ///< Teren z którym cząsteczka wchodzi w interakcje, NULL jeśli ma nie wchodzić
 public:
     //! Konstruktor parametryczny
     Particle(pos2d initPos, pos2d initVel, pos2d initGrav, type pType, double lifespanSec = 5, double size = 2);
@@ -81,13 +82,13 @@ public:
     //! Metoda rysująca cząsteczke podanym painterem (typ wg pola typu)
     void Draw(QPainter *painter);
 
-    //! Metoda rysujaca czasteczke jako plamka ognia
+    //! Metoda rysująca czasteczke jako plamka ognia
     void DrawAsFlame(QPainter *painter);
 
-    //! Metoda rysujaca czasteczke jako iskierke
+    //! Metoda rysująca czasteczke jako iskierke
     void DrawAsSpark(QPainter *painter);
 
-    //! Metoda rysujaca czasteczke jako chmurkę pyłu
+    //! Metoda rysująca czasteczke jako chmurkę pyłu
     void DrawAsDust(QPainter *painter);
 
     //! Metoda wykonująca "krok" cząsteczki (wielkość, kolizje)
@@ -106,26 +107,26 @@ public:
  */
 class Ship : public PhysicsObj
 {
-    double _legAngle;                 ///< nachylenie nóg lądownika od pionu (muszą być 2 symetryczne)
-    double _legLength;                ///< długość nóg lądownika od jego środka
-    double _legMaxImpactVel;          ///< prędkość po jakiej przekroczeniu nogi są niszczone przy kontakcie
-    double _fragileRadius;            ///< maksymalna odległość kadłuba od terenu, mniejsza niszczy statek
-    bool _leg1coll, _leg2coll;        ///< czy noga 1,2 są aktualnie w kontakcie z terenem
-    int _state;                       ///< status:  1-zniszczony, 2-pierw. noga zniszczona, 3-druga noga zniszczona, reszta-OK
-    double _maxFuelConsPerSec;        ///< pobór paliwa przy maksymalnej nastawie silnika
-    double _maxFuelCap, _currFuel;    ///< maksymalny i aktualny poziom paliwa
+    double _legAngle;                 ///< Nachylenie nóg lądownika od pionu (muszą być 2 symetryczne)
+    double _legLength;                ///< Długość nóg lądownika od jego środka
+    double _legMaxImpactVel;          ///< Prędkość po jakiej przekroczeniu nogi są niszczone przy kontakcie
+    double _fragileRadius;            ///< Maksymalna odległość kadłuba od terenu, mniejsza niszczy statek
+    bool _leg1coll, _leg2coll;        ///< Czy noga 1,2 są aktualnie w kontakcie z terenem
+    int _state;                       ///< Status: 1-zniszczony, 2-pierwsza noga zniszczona, 3-druga noga zniszczona, reszta-OK
+    double _maxFuelConsPerSec;        ///< Pobór paliwa przy maksymalnej nastawie silnika
+    double _maxFuelCap, _currFuel;    ///< Maksymalny i aktualny poziom paliwa
 
     double _particleDensity;          ///< Współczynnik do skalowania ilosci tworzonych cząsteczek (0 - inf)
 
-    double _maxThrust;                ///< maksymalna siła odrzutu silnika
-    double _currThrustPerc;           ///< aktualny procent nastawy silnika
+    double _maxThrust;                ///< Maksymalna siła odrzutu silnika
+    double _currThrustPerc;           ///< Aktualny procent nastawy silnika
 
-    double _maxTorq;                  ///< maskymalny moment obrotowy statku
-    double _currTorqPerc;             ///< obecny procent nastawy obrotu statku
+    double _maxTorq;                  ///< Maksymalny moment obrotowy statku
+    double _currTorqPerc;             ///< Obecny procent nastawy obrotu statku
 
-    std::vector<Particle*> _spawnedParticles; ///< wektor stworzonych przez statek cząsteczek
+    std::vector<Particle*> _spawnedParticles; ///< Wektor stworzonych przez statek cząsteczek
 
-    Terrain *_terr;                   ///< teren z którym statek ma kolidować
+    Terrain *_terr;                   ///< Teren z którym statek ma kolidować
 
 public:
     //! Konstruktor parametryczny - TRZEBA podać teren dla kolizji dla statku

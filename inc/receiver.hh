@@ -11,7 +11,7 @@
 /*! \brief Czysto wirtualna klasa odbiornika nowych pomiarów i/lub danych o pomiarze
  *
  *  Po podaniu źródłowego sprzętu w konstruktorze, zbiera przychodzące dane o nowym pomiarze,
- * nowych danych kalibracji i nowych surowych danych.
+ * nowych danych kalibracji i nowych surowych danych. <br>
  * Posiada puste ciała funkcji odbioru, metoda odbioru samych danych wymaga reimplemetacji w klasie pochodnej.
  */
 class Receiver : public QWidget

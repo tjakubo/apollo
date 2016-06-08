@@ -3,13 +3,15 @@
 
 /*! \mainpage Wizualizacja lądowania na księżycu - dokumentacja
  *
- * Aplikacja ma formę gry w której sterowanie realizowane jest poprzez obrót podłączonego akcelerometru.
- * Dodatkowo istnieje możliwość wizualizacji i kalibracji wejść oraz dołączenia potencjometru jako sterowania.
+ * Aplikacja ma formę gry w której sterowanie realizowane jest poprzez obrót podłączonego akcelerometru. <br>
+ * Dodatkowo istnieje możliwość wizualizacji i kalibracji wejść oraz dołączenia potencjometru jako sterowania. <br>
  * Przycisk "Pomoc" w oknie gry pokazuje opis interfejsu.
+ *
+ *
  *
  * Projekt realizowany w ramach kursu "Wizualizacja Danych Sensorycznych"
  *
- * Tobiasz Jakubowski
+ * Tobiasz Jakubowski <br>
  * WDS 2016
  */
 
@@ -43,19 +45,19 @@ namespace Ui {
 class MainWindow;
 }
 
-/*! \brief Klasa zarządzająca oknem głównym i pokazywaniem/chowaniem reszty
+/*! \brief Klasa zarządzająca oknem głównym i pokazywaniem/chowaniem reszty.
  *
- * Tutaj stworzone zostają timery cykliczne które wywołują update okienek oraz czytanie nowego pomiaru z konfigurowalną częstotliwością.
+ * Tutaj stworzone zostają timery cykliczne które wywołują update okienek oraz czytanie nowego pomiaru z konfigurowalną częstotliwością. <br>
  * Klasa ta tworzy również obiekt klasy sprzętu który jest później przekazywany innnym okienkom
- * jako m.in. źródło pomiarów.
+ * jako m.in. źródło pomiarów. <br>
  * W konstruktorze łączone są również wszystkie sygnały w programie.
  */
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    Hardware *_HWlink;         ///< (tworzony tutaj) Obiekt reprezentujący sprzęt
-    InputWindow *_InputWindow; ///< (tworzony tutaj) Obiekt reprezentujący okno kalibracji
-    GameWindow *_GameWindow;   ///< (towrzony tutaj) Obiekt reprezentujący okno gry
+    Hardware *_HWlink;         ///< Wskaźnik na (tworzony tutaj) obiekt reprezentujący sprzęt
+    InputWindow *_InputWindow; ///< Wskaźnik na (tworzony tutaj) obiekt reprezentujący okno kalibracji
+    GameWindow *_GameWindow;   ///< Wskaźnik na (tworzony tutaj) obiekt reprezentujący okno gry
 
     QTimer *_measTimer;     ///< Timer do cyklicznego wywoływania funkcji pomiaru
     QTimer *_updateTimer;   ///< Timer do cyklicznego wywoływania update okien
@@ -67,13 +69,13 @@ public:
     ~MainWindow();
     
 private slots:
-    //! Klik ukryj/pokaż okno wizualizacji i kalibracji sterowania
+    //! Przycisk ukryj/pokaż okno wizualizacji i kalibracji sterowania
     void on_inputWindowButton_clicked();
-    //! Klik ukryj/pokaż okno gry
+    //! Przycisk ukryj/pokaż okno gry
     void on_gameWindowButton_clicked();
 
 private:
-    Ui::MainWindow *ui;
+    Ui::MainWindow *ui; ///< Obiekt z UI z Designera
 };
 
 #endif // MAINWINDOW_H

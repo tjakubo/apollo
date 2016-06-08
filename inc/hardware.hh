@@ -14,7 +14,7 @@
 #endif
 
 #define MEAS_PORT "/dev/ttyS0" ///< Port jakim się komunikujemy ze sprzętem
-#define SAMPLE_NUM_MAX 30      ///< Maskymalna liczba próbek w uśrednianiu pomiaru
+#define SAMPLE_NUM_MAX 30      ///< Maksymalna liczba próbek w uśrednianiu pomiaru
 #define INT_1G 64              ///< Wartość pomiaru przyspieszenia równa 1g
 #define TIMEOUT_MS 50          ///< Ile milisekund mamy czekać na nowy znak z pomiaru
 
@@ -42,11 +42,11 @@ meas operator/ (meas m, int div);
 
 
 /*!
- * \brief Klasa obsługująca połączenie ze sprzętem - odczyt, weryfikacja/kalibracja danych, przesyłanie dalej
+ * \brief Klasa obsługująca połączenie ze sprzętem - odczyt, weryfikacja/kalibracja danych, przesyłanie dalej.
  *
- * Realizuje połączenie poprzez odczyt z portu szeregowego funkcjami bilbiotego Boost. Na to nałożona
- * została funkcjonalność zewnętrznej biblioteki blocking_reader.hh Kevina Goddena.
- * Efekt to odczyt synchroniczny z funkcją timeoutu.
+ * Realizuje połączenie poprzez odczyt z portu szeregowego funkcjami bilbioteki Boost. Na to nałożona
+ * została funkcjonalność zewnętrznej biblioteki blocking_reader.hh Kevina Goddena. <br>
+ * Efekt to odczyt synchroniczny z funkcją timeoutu. <br>
  * Oprócz tego klasa sprawdza sumę kontrolną pomiaru i nakłąda żądane przetwarzanie (kalibracja, uśrednianie).
  */
 class Hardware: public QWidget{

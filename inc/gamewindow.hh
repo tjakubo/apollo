@@ -35,10 +35,10 @@ class GameWindow;
 }
 
 /*!
- * \brief Klasa zarządzająca oknem gry
+ * \brief Klasa zarządzająca oknem gry.
  *
  * Tworzy obiekty lądownika i terenu oraz zarządza przesyłem pomiarów (sterowania) od sprzętu
- * do lądownika. Definiuje wielkość grawitacji dla lądownika
+ * do lądownika. Definiuje wielkość grawitacji dla lądownika.
  */
 class GameWindow : public Receiver
 {
@@ -77,11 +77,11 @@ private slots:
     void on_partSlider_valueChanged(int value);
     //! Slider siły grawitacji
     void on_gravSlider_valueChanged(int value);
-    //! Przycik pokazywania/chowania okna pomocy
+    //! Przycisk pokazywania/chowania okna pomocy
     void on_helpButton_clicked();
 
 private:
-    Ui::GameWindow *ui;
+    Ui::GameWindow *ui; ///< Obiekt z UI z Designera
 };
 
 #endif // GAMEWINDOW_HH

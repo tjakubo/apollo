@@ -20,7 +20,7 @@ class InputWindow;
 }
 
 /*!
- * \brief Klasa zarządzająca okienkiem kalibracji sterowania
+ * \brief Klasa zarządzająca okienkiem kalibracji sterowania.
  *
  * Pozwala na ustawienie wszystkich parametrów kalibracji (które działają dla wszystkich odbiorników
  * danych z powiązanego sprzętu), sprawdzenie odbieranych surowych danych oraz wizualnie prezentuje
@@ -50,20 +50,20 @@ public slots:
     void NewMeasurementReceived(meas newMeas);
     //! Slot wywoływany kiedy pojawią się nowe dane kalibracji (udate textboxów od kalibracji)
     void NewCalibrationDataReceived(meas calData, int sampleNum);
-    //! Slot wywoływany kiedy pojawia się surowe dane (wkłada do boxa z surowymi danymi)
+    //! Slot wywoływany kiedy pojawią się surowe dane (wkłada do boxa z surowymi danymi)
     void NewRawDataReceived(QString newRaw);
 
     //! Metoda odświeżająca widgety w okienku - paski ProgressBar itd
     void UpdateView();
 
 private slots:
-    void on_resetOffset_clicked();             ///< Klik reset offsetu do wartości domyślnej
-    void on_compensateOffset_clicked();        ///< Klik ustawienie offsetu aby była "zerowa" pozycja
-    void on_applyOffset_clicked();             ///< Klik ustaw offset z textboxa
-    void on_setMaxMeas_clicked();              ///< Klik ustaw aktualny pomiar potensjometru jako max
-    void on_resetMaxMeas_clicked();            ///< Klik reset max potensjometru do domyślnej wartości
-    void on_setSampleNum_clicked();            ///< Klik ustaw ilość próbek do uśredniania z tetboxa
-    void on_rawEnable_clicked(bool checked);   ///< "Radio button" czy chcemy dostawać surowe dane
+    void on_resetOffset_clicked();             ///< Przycisk resetu offsetu do wartości domyślnej
+    void on_compensateOffset_clicked();        ///< Przycisk ustawienia offsetu aby była "zerowa" pozycja
+    void on_applyOffset_clicked();             ///< Przycisk ustawienia offset z textboxa
+    void on_setMaxMeas_clicked();              ///< Przycisk ustawienia aktualnego pomiaru potencjometru jako max
+    void on_resetMaxMeas_clicked();            ///< Przycisk resetu max pomiaru potencjometru do domyślnej wartości
+    void on_setSampleNum_clicked();            ///< Przycisk ustawienia ilość próbek do uśredniania z textboxa
+    void on_rawEnable_clicked(bool checked);   ///< Przycisk "RadioButton" ustawienia czy chcemy dostawać surowe dane
 
 private:
     Ui::InputWindow *ui; ///< Obiekt z UI z Designera
