@@ -48,6 +48,11 @@ meas operator/ (meas m, int div);
  * została funkcjonalność zewnętrznej biblioteki blocking_reader.hh Kevina Goddena. <br>
  * Efekt to odczyt synchroniczny z funkcją timeoutu. <br>
  * Oprócz tego klasa sprawdza sumę kontrolną pomiaru i nakłąda żądane przetwarzanie (kalibracja, uśrednianie).
+ *
+ * Klasa może otrzymywać dane z dowolnego źródła (byle były zgodne z formatem opisanym przy metodzie Measure() ),
+ * ale docelowo źródłem pomiarów jest akcelerometr MMA7455 z którym komunikuje się mikroprocesor AtMega32 po magistrali
+ * I2C, a dalej z komputerem poprzez moduł UART i układ FTDI. Kod źródłowy programu wgranego do procesora jest dostępny pod adresem:
+ * www.github.com/tjakubo2/apollo_hw.
  */
 class Hardware: public QWidget{
     Q_OBJECT

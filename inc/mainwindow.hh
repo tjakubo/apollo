@@ -1,13 +1,14 @@
 #ifndef MAINWINDOW_HH
 #define MAINWINDOW_HH
 
-/*! \mainpage Wizualizacja lądowania na księżycu - dokumentacja
+/*! \mainpage Wstęp
  *
  * Aplikacja ma formę gry w której sterowanie realizowane jest poprzez obrót podłączonego akcelerometru. <br>
  * Dodatkowo istnieje możliwość wizualizacji i kalibracji wejść oraz dołączenia potencjometru jako sterowania. <br>
- * Przycisk "Pomoc" w oknie gry pokazuje opis interfejsu.
+ * Przycisk "Pomoc" w oknie gry pokazuje opis interfejsu. <br>
  *
- *
+ * Źródła projektu dostępne są pod adresem: http://github.com/tjakubo2/apollo <br>
+ * Kod użyty do obsługi sensorów poprzez układ ATmega32 dostępny jest pod adresem: http://github.com/tjakubo2/apollo_hw
  *
  * Projekt realizowany w ramach kursu "Wizualizacja Danych Sensorycznych"
  *
