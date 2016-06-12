@@ -1,11 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>img/ship_ok.png</file>
-        <file>img/ship_lleg_mangled.png</file>
-        <file>img/RoR_bg.png</file>
-        <file>img/hud_static_opaque.png</file>
         <file>img/my_bg.png</file>
-        <file>img/ship_ok_w.png</file>
         <file>img/led_red.png</file>
         <file>img/led_orange.png</file>
         <file>img/led_green.png</file>
@@ -17,7 +12,5 @@
         <file>img/lander_damaged_right.png</file>
         <file>img/lander_damaged_left.png</file>
         <file>img/hud_static.png</file>
-        <file>img/ship_wrecked.png</file>
-        <file>img/ship_rleg_mangled.png</file>
     </qresource>
 </RCC>

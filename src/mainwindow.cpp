@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
     _InputWindow->setWindowTitle(QObject::trUtf8("Dane sensoryczne"));
 
     _GameWindow = new GameWindow(_HWlink);
-    _InputWindow->setWindowTitle(QObject::trUtf8("Lądowanie"));
+    _GameWindow->setWindowTitle(QObject::trUtf8("Lądowanie"));
 
     bool connectOK = true;
 
